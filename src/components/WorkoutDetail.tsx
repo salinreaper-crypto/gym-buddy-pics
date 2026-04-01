@@ -84,7 +84,7 @@ export default function WorkoutDetail({ workout, onBack, onDeleted }: WorkoutDet
               <div key={i} className="grid grid-cols-3 gap-4 p-4 border-b border-border last:border-none">
                 <span className="font-medium">{i + 1}</span>
                 <span className="text-center">{s.reps}</span>
-                <span className="text-right">{s.weight} lbs</span>
+                <span className="text-right">{s.weight} kg</span>
               </div>
             ))}
           </div>

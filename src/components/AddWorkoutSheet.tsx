@@ -111,7 +111,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
             <div className="space-y-3 mb-6">
               <div className="grid grid-cols-[1fr_1fr_40px] gap-3 text-xs text-muted-foreground font-medium px-1">
                 <span>REPS</span>
-                <span>WEIGHT (lbs)</span>
+                <span>WEIGHT (kg)</span>
                 <span />
               </div>
               {sets.map((s, i) => (

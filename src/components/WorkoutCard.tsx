@@ -37,7 +37,7 @@ export default function WorkoutCard({ workout, onClick, index }: WorkoutCardProp
       <div className="flex-1 min-w-0">
         <h3 className="font-display font-semibold text-foreground truncate">{workout.name}</h3>
         <p className="text-sm text-muted-foreground">
-          {workout.sets.length} sets · {totalVolume.toLocaleString()} lbs · {dateStr}
+          {workout.sets.length} sets · {totalVolume.toLocaleString()} kg · {dateStr}
         </p>
       </div>
       <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
