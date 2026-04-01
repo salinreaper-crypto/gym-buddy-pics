@@ -1,10 +1,23 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Plus, Dumbbell } from "lucide-react";
+import { Plus, Dumbbell, Trophy } from "lucide-react";
 import { getWorkouts, type Workout } from "@/lib/workoutStore";
 import WorkoutCard from "@/components/WorkoutCard";
 import AddWorkoutSheet from "@/components/AddWorkoutSheet";
 import WorkoutDetail from "@/components/WorkoutDetail";
+
+function getPersonalRecords(workouts: Workout[]) {
+  const prMap = new Map<string, { weight: number; reps: number; date: string }>();
+  for (const w of workouts) {
+    for (const s of w.sets) {
+      const existing = prMap.get(w.name);
+      if (!existing || s.weight > existing.weight) {
+        prMap.set(w.name, { weight: s.weight, reps: s.reps, date: w.date });
+      }
+    }
+  }
+  return Array.from(prMap.entries()).map(([name, pr]) => ({ name, ...pr }));
+}
 
 export default function Index() {
   const [workouts, setWorkouts] = useState<Workout[]>(getWorkouts);
@@ -12,14 +25,40 @@ export default function Index() {
   const [selected, setSelected] = useState<Workout | null>(null);
 
   const refresh = useCallback(() => setWorkouts(getWorkouts()), []);
+  const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
 
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div className="px-6 pt-14 pb-6">
+      <div className="px-6 pt-14 pb-4">
         <p className="text-sm text-primary font-medium tracking-wider uppercase">Your Gym</p>
         <h1 className="text-3xl font-bold mt-1">Workouts</h1>
       </div>
+
+      {/* PR Section */}
+      {prs.length > 0 && (
+        <div className="px-4 pb-6">
+          <div className="flex items-center gap-2 px-2 mb-3">
+            <Trophy className="w-4 h-4 text-primary" />
+            <span className="text-sm font-display font-semibold text-primary tracking-wide uppercase">Personal Records</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            {prs.map((pr, i) => (
+              <motion.div
+                key={pr.name}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.05 }}
+                className="glass-card rounded-lg p-4 min-w-[140px] flex-shrink-0"
+              >
+                <p className="text-xs text-muted-foreground truncate mb-1">{pr.name}</p>
+                <p className="text-xl font-display font-bold text-primary">{pr.weight}<span className="text-sm text-muted-foreground ml-1">kg</span></p>
+                <p className="text-xs text-muted-foreground mt-1">{pr.reps} reps</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Workout list */}
       <div className="px-4 space-y-3">
