@@ -69,7 +69,7 @@ export default function WorkoutDetail({ workout, onBack, onDeleted }: WorkoutDet
             </div>
             <div className="glass-card rounded-lg p-4 text-center">
               <p className="text-2xl font-display font-bold text-primary">{totalVolume.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground mt-1">TOTAL LBS</p>
+              <p className="text-xs text-muted-foreground mt-1">TOTAL KG</p>
             </div>
           </div>
 
@@ -84,7 +84,7 @@ export default function WorkoutDetail({ workout, onBack, onDeleted }: WorkoutDet
               <div key={i} className="grid grid-cols-3 gap-4 p-4 border-b border-border last:border-none">
                 <span className="font-medium">{i + 1}</span>
                 <span className="text-center">{s.reps}</span>
-                <span className="text-right">{s.weight} lbs</span>
+                <span className="text-right">{s.weight} kg</span>
               </div>
             ))}
           </div>
