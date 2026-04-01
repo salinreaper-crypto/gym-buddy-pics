@@ -1,0 +1,95 @@
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Trash2, Dumbbell } from "lucide-react";
+import type { Workout } from "@/lib/workoutStore";
+import { deleteWorkout } from "@/lib/workoutStore";
+import { toast } from "@/hooks/use-toast";
+
+interface WorkoutDetailProps {
+  workout: Workout | null;
+  onBack: () => void;
+  onDeleted: () => void;
+}
+
+export default function WorkoutDetail({ workout, onBack, onDeleted }: WorkoutDetailProps) {
+  if (!workout) return null;
+
+  const totalVolume = workout.sets.reduce((sum, s) => sum + s.reps * s.weight, 0);
+  const dateStr = new Date(workout.date).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  const handleDelete = () => {
+    deleteWorkout(workout.id);
+    toast({ title: "Workout deleted" });
+    onDeleted();
+    onBack();
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "spring", damping: 28, stiffness: 300 }}
+        className="fixed inset-0 z-30 bg-background overflow-y-auto"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4">
+          <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-secondary">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <button onClick={handleDelete} className="p-2 -mr-2 rounded-full hover:bg-secondary text-destructive">
+            <Trash2 className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Photo */}
+        {workout.photo ? (
+          <img src={workout.photo} alt={workout.name} className="w-full h-56 object-cover" />
+        ) : (
+          <div className="w-full h-56 bg-secondary flex items-center justify-center">
+            <Dumbbell className="w-16 h-16 text-primary/30" />
+          </div>
+        )}
+
+        <div className="p-6 space-y-6">
+          <div>
+            <h1 className="font-display text-2xl font-bold">{workout.name}</h1>
+            <p className="text-muted-foreground mt-1">{dateStr}</p>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="glass-card rounded-lg p-4 text-center">
+              <p className="text-2xl font-display font-bold text-primary">{workout.sets.length}</p>
+              <p className="text-xs text-muted-foreground mt-1">SETS</p>
+            </div>
+            <div className="glass-card rounded-lg p-4 text-center">
+              <p className="text-2xl font-display font-bold text-primary">{totalVolume.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">TOTAL LBS</p>
+            </div>
+          </div>
+
+          {/* Sets table */}
+          <div className="glass-card rounded-lg overflow-hidden">
+            <div className="grid grid-cols-3 gap-4 p-4 text-xs text-muted-foreground font-medium border-b border-border">
+              <span>SET</span>
+              <span className="text-center">REPS</span>
+              <span className="text-right">WEIGHT</span>
+            </div>
+            {workout.sets.map((s, i) => (
+              <div key={i} className="grid grid-cols-3 gap-4 p-4 border-b border-border last:border-none">
+                <span className="font-medium">{i + 1}</span>
+                <span className="text-center">{s.reps}</span>
+                <span className="text-right">{s.weight} lbs</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
