@@ -1,11 +1,14 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Plus, Dumbbell, Trophy } from "lucide-react";
+import { Plus, Dumbbell, Trophy, HeartPulse } from "lucide-react";
 import { getWorkouts, type Workout } from "@/lib/workoutStore";
+import { getCardioEntries, deleteCardioEntry, type CardioEntry } from "@/lib/cardioStore";
 import WorkoutCard from "@/components/WorkoutCard";
 import AddWorkoutSheet from "@/components/AddWorkoutSheet";
 import WorkoutDetail from "@/components/WorkoutDetail";
 import BmiTracker from "@/components/BmiTracker";
+import AddCardioSheet from "@/components/AddCardioSheet";
+import CardioCard from "@/components/CardioCard";
 
 function getPersonalRecords(workouts: Workout[]) {
   const prMap = new Map<string, { weight: number; reps: number; date: string }>();
@@ -20,13 +23,24 @@ function getPersonalRecords(workouts: Workout[]) {
   return Array.from(prMap.entries()).map(([name, pr]) => ({ name, ...pr }));
 }
 
+type Tab = "weights" | "cardio";
+
 export default function Index() {
+  const [tab, setTab] = useState<Tab>("weights");
   const [workouts, setWorkouts] = useState<Workout[]>(getWorkouts);
+  const [cardioEntries, setCardioEntries] = useState<CardioEntry[]>(getCardioEntries);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
   const [selected, setSelected] = useState<Workout | null>(null);
 
-  const refresh = useCallback(() => setWorkouts(getWorkouts()), []);
+  const refreshWorkouts = useCallback(() => setWorkouts(getWorkouts()), []);
+  const refreshCardio = useCallback(() => setCardioEntries(getCardioEntries()), []);
   const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
+
+  const handleDeleteCardio = (id: string) => {
+    deleteCardioEntry(id);
+    refreshCardio();
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -36,67 +50,116 @@ export default function Index() {
         <h1 className="text-3xl font-bold mt-1">Workouts</h1>
       </div>
 
-      {/* PR Section */}
-      {prs.length > 0 && (
-        <div className="px-4 pb-6">
-          <div className="flex items-center gap-2 px-2 mb-3">
-            <Trophy className="w-4 h-4 text-primary" />
-            <span className="text-sm font-display font-semibold text-primary tracking-wide uppercase">Personal Records</span>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {prs.map((pr, i) => (
-              <motion.div
-                key={pr.name}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-                className="glass-card rounded-lg p-4 min-w-[140px] flex-shrink-0"
-              >
-                <p className="text-xs text-muted-foreground truncate mb-1">{pr.name}</p>
-                <p className="text-xl font-display font-bold text-primary">{pr.weight}<span className="text-sm text-muted-foreground ml-1">kg</span></p>
-                <p className="text-xs text-muted-foreground mt-1">{pr.reps} reps</p>
-              </motion.div>
-            ))}
-          </div>
+      {/* Tabs */}
+      <div className="px-4 pb-4">
+        <div className="flex bg-secondary rounded-lg p-1">
+          <button
+            onClick={() => setTab("weights")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
+              tab === "weights" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            <Dumbbell className="w-4 h-4" /> Weights
+          </button>
+          <button
+            onClick={() => setTab("cardio")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
+              tab === "cardio" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            <HeartPulse className="w-4 h-4" /> Cardio
+          </button>
         </div>
+      </div>
+
+      {tab === "weights" && (
+        <>
+          {/* PR Section */}
+          {prs.length > 0 && (
+            <div className="px-4 pb-6">
+              <div className="flex items-center gap-2 px-2 mb-3">
+                <Trophy className="w-4 h-4 text-primary" />
+                <span className="text-sm font-display font-semibold text-primary tracking-wide uppercase">Personal Records</span>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {prs.map((pr, i) => (
+                  <motion.div
+                    key={pr.name}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="glass-card rounded-lg p-4 min-w-[140px] flex-shrink-0"
+                  >
+                    <p className="text-xs text-muted-foreground truncate mb-1">{pr.name}</p>
+                    <p className="text-xl font-display font-bold text-primary">{pr.weight}<span className="text-sm text-muted-foreground ml-1">kg</span></p>
+                    <p className="text-xs text-muted-foreground mt-1">{pr.reps} reps</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* BMI Tracker */}
+          <BmiTracker />
+
+          {/* Workout list */}
+          <div className="px-4 space-y-3">
+            {workouts.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center py-20 text-center"
+              >
+                <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mb-4">
+                  <Dumbbell className="w-10 h-10 text-primary/40" />
+                </div>
+                <p className="text-muted-foreground text-lg">No workouts yet</p>
+                <p className="text-muted-foreground text-sm mt-1">Tap + to log your first workout</p>
+              </motion.div>
+            ) : (
+              workouts.map((w, i) => (
+                <WorkoutCard key={w.id} workout={w} index={i} onClick={() => setSelected(w)} />
+              ))
+            )}
+          </div>
+        </>
       )}
 
-      {/* BMI Tracker */}
-      <BmiTracker />
-
-      {/* Workout list */}
-      <div className="px-4 space-y-3">
-        {workouts.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center py-20 text-center"
-          >
-            <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mb-4">
-              <Dumbbell className="w-10 h-10 text-primary/40" />
-            </div>
-            <p className="text-muted-foreground text-lg">No workouts yet</p>
-            <p className="text-muted-foreground text-sm mt-1">Tap + to log your first workout</p>
-          </motion.div>
-        ) : (
-          workouts.map((w, i) => (
-            <WorkoutCard key={w.id} workout={w} index={i} onClick={() => setSelected(w)} />
-          ))
-        )}
-      </div>
+      {tab === "cardio" && (
+        <div className="px-4 space-y-3">
+          {cardioEntries.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-20 text-center"
+            >
+              <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mb-4">
+                <HeartPulse className="w-10 h-10 text-primary/40" />
+              </div>
+              <p className="text-muted-foreground text-lg">No cardio yet</p>
+              <p className="text-muted-foreground text-sm mt-1">Tap + to log your first session</p>
+            </motion.div>
+          ) : (
+            cardioEntries.map((e, i) => (
+              <CardioCard key={e.id} entry={e} index={i} onDelete={handleDeleteCardio} />
+            ))
+          )}
+        </div>
+      )}
 
       {/* FAB */}
       <motion.button
         whileTap={{ scale: 0.9 }}
-        onClick={() => setSheetOpen(true)}
+        onClick={() => tab === "weights" ? setSheetOpen(true) : setCardioSheetOpen(true)}
         className="fixed bottom-8 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg glow-primary z-20"
       >
         <Plus className="w-7 h-7" />
       </motion.button>
 
-      <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refresh} />
+      <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refreshWorkouts} />
+      <AddCardioSheet open={cardioSheetOpen} onClose={() => setCardioSheetOpen(false)} onSaved={refreshCardio} />
       {selected && (
-        <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refresh} />
+        <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshWorkouts} />
       )}
     </div>
   );
