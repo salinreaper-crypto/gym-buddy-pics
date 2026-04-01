@@ -1,10 +1,16 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Camera, Trash2 } from "lucide-react";
+import { X, Plus, Camera, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveWorkout, type WorkoutSet } from "@/lib/workoutStore";
 import { toast } from "@/hooks/use-toast";
+import {
+  EXERCISES,
+  CATEGORY_LABELS,
+  CATEGORY_COLORS,
+  type ExerciseCategory,
+} from "@/lib/exercises";
 
 interface AddWorkoutSheetProps {
   open: boolean;
@@ -16,12 +22,16 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const [name, setName] = useState("");
   const [sets, setSets] = useState<WorkoutSet[]>([{ reps: 10, weight: 0 }]);
   const [photo, setPhoto] = useState<string | undefined>();
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [expandedCategory, setExpandedCategory] = useState<ExerciseCategory | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setName("");
     setSets([{ reps: 10, weight: 0 }]);
     setPhoto(undefined);
+    setPickerOpen(false);
+    setExpandedCategory(null);
   };
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +50,15 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const addSet = () => setSets((prev) => [...prev, { reps: 10, weight: prev[prev.length - 1]?.weight ?? 0 }]);
   const removeSet = (i: number) => setSets((prev) => prev.filter((_, idx) => idx !== i));
 
+  const selectExercise = (exerciseName: string) => {
+    setName(exerciseName);
+    setPickerOpen(false);
+  };
+
+  const toggleCategory = (cat: ExerciseCategory) => {
+    setExpandedCategory((prev) => (prev === cat ? null : cat));
+  };
+
   const handleSave = () => {
     if (!name.trim()) {
       toast({ title: "Enter a workout name", variant: "destructive" });
@@ -57,6 +76,8 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
     onClose();
     toast({ title: "Workout logged! 💪" });
   };
+
+  const categories: ExerciseCategory[] = ["push", "pull", "legs"];
 
   return (
     <AnimatePresence>
@@ -99,13 +120,77 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
               )}
             </button>
 
-            {/* Name */}
-            <Input
-              placeholder="Workout name (e.g. Bench Press)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mb-6 bg-secondary border-none h-12 text-base font-medium placeholder:text-muted-foreground"
-            />
+            {/* Exercise Picker */}
+            <div className="mb-6 relative">
+              <button
+                onClick={() => setPickerOpen(!pickerOpen)}
+                className="w-full bg-secondary rounded-lg h-12 px-4 flex items-center justify-between text-base font-medium"
+              >
+                <span className={name ? "text-foreground" : "text-muted-foreground"}>
+                  {name || "Select exercise..."}
+                </span>
+                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${pickerOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              <AnimatePresence>
+                {pickerOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 rounded-lg bg-secondary border border-border overflow-hidden"
+                  >
+                    <div className="max-h-60 overflow-y-auto">
+                      {categories.map((cat) => (
+                        <div key={cat}>
+                          <button
+                            onClick={() => toggleCategory(cat)}
+                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border"
+                          >
+                            <span className={`font-display font-semibold text-sm uppercase tracking-wider ${CATEGORY_COLORS[cat]}`}>
+                              {CATEGORY_LABELS[cat]}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedCategory === cat ? "rotate-180" : ""}`} />
+                          </button>
+                          <AnimatePresence>
+                            {expandedCategory === cat && (
+                              <motion.div
+                                initial={{ height: 0 }}
+                                animate={{ height: "auto" }}
+                                exit={{ height: 0 }}
+                                className="overflow-hidden"
+                              >
+                                {EXERCISES.filter((e) => e.category === cat).map((exercise) => (
+                                  <button
+                                    key={exercise.name}
+                                    onClick={() => selectExercise(exercise.name)}
+                                    className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors ${
+                                      name === exercise.name ? "text-primary font-medium" : "text-foreground"
+                                    }`}
+                                  >
+                                    {exercise.name}
+                                  </button>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      ))}
+                      {/* Custom option */}
+                      <div className="px-4 py-3 border-t border-border">
+                        <Input
+                          placeholder="Or type a custom name..."
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="bg-muted/50 border-none h-10 text-sm placeholder:text-muted-foreground"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Sets */}
             <div className="space-y-3 mb-6">
