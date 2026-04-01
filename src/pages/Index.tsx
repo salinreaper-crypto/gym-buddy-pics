@@ -5,6 +5,7 @@ import { getWorkouts, type Workout } from "@/lib/workoutStore";
 import WorkoutCard from "@/components/WorkoutCard";
 import AddWorkoutSheet from "@/components/AddWorkoutSheet";
 import WorkoutDetail from "@/components/WorkoutDetail";
+import BmiTracker from "@/components/BmiTracker";
 
 function getPersonalRecords(workouts: Workout[]) {
   const prMap = new Map<string, { weight: number; reps: number; date: string }>();
@@ -59,6 +60,9 @@ export default function Index() {
           </div>
         </div>
       )}
+
+      {/* BMI Tracker */}
+      <BmiTracker />
 
       {/* Workout list */}
       <div className="px-4 space-y-3">
