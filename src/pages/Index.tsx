@@ -61,6 +61,9 @@ export default function Index() {
         </div>
       )}
 
+      {/* BMI Tracker */}
+      <BmiTracker />
+
       {/* Workout list */}
       <div className="px-4 space-y-3">
         {workouts.length === 0 ? (
