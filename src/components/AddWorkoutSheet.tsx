@@ -21,6 +21,7 @@ interface AddWorkoutSheetProps {
 
 export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSheetProps) {
   const { user } = useAuth();
+  const [name, setName] = useState("");
   const [sets, setSets] = useState<WorkoutSet[]>([{ reps: 10, weight: 0 }]);
   const [photo, setPhoto] = useState<string | undefined>();
   const [pickerOpen, setPickerOpen] = useState(false);

@@ -20,6 +20,7 @@ interface AddCardioSheetProps {
 
 export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioSheetProps) {
   const { user } = useAuth();
+  const [name, setName] = useState("");
   const [duration, setDuration] = useState("");
   const [distance, setDistance] = useState("");
   const [calories, setCalories] = useState("");
