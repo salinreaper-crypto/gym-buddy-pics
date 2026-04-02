@@ -14,7 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cardio_entries: {
+        Row: {
+          calories: number | null
+          created_at: string
+          distance: number | null
+          duration: number
+          entry_date: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          created_at?: string
+          distance?: number | null
+          duration: number
+          entry_date?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          created_at?: string
+          distance?: number | null
+          duration?: number
+          entry_date?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workouts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          photo: string | null
+          sets: Json
+          updated_at: string
+          user_id: string
+          workout_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          photo?: string | null
+          sets?: Json
+          updated_at?: string
+          user_id: string
+          workout_date?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          photo?: string | null
+          sets?: Json
+          updated_at?: string
+          user_id?: string
+          workout_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
