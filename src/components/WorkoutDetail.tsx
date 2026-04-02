@@ -20,8 +20,8 @@ export default function WorkoutDetail({ workout, onBack, onDeleted }: WorkoutDet
     day: "numeric",
   });
 
-  const handleDelete = () => {
-    deleteWorkout(workout.id);
+  const handleDelete = async () => {
+    await deleteWorkout(workout.id);
     toast({ title: "Workout deleted" });
     onDeleted();
     onBack();
