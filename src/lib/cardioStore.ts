@@ -1,27 +1,43 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface CardioEntry {
   id: string;
   name: string;
-  duration: number; // minutes
-  distance?: number; // km
-  calories?: number;
+  duration: number;
+  distance?: number | null;
+  calories?: number | null;
   date: string;
 }
 
-const STORAGE_KEY = "cardio_entries";
-
-export function getCardioEntries(): CardioEntry[] {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
-  try { return JSON.parse(raw); } catch { return []; }
+export async function getCardioEntries(): Promise<CardioEntry[]> {
+  const { data, error } = await supabase
+    .from("cardio_entries")
+    .select("*")
+    .order("entry_date", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((e) => ({
+    id: e.id,
+    name: e.name,
+    duration: e.duration,
+    distance: e.distance,
+    calories: e.calories,
+    date: e.entry_date,
+  }));
 }
 
-export function saveCardioEntry(entry: CardioEntry) {
-  const entries = getCardioEntries();
-  entries.unshift(entry);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+export async function saveCardioEntry(entry: Omit<CardioEntry, "id">, userId: string) {
+  const { error } = await supabase.from("cardio_entries").insert({
+    user_id: userId,
+    name: entry.name,
+    duration: entry.duration,
+    distance: entry.distance,
+    calories: entry.calories,
+    entry_date: entry.date,
+  });
+  if (error) throw error;
 }
 
-export function deleteCardioEntry(id: string) {
-  const entries = getCardioEntries().filter((e) => e.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+export async function deleteCardioEntry(id: string) {
+  const { error } = await supabase.from("cardio_entries").delete().eq("id", id);
+  if (error) throw error;
 }

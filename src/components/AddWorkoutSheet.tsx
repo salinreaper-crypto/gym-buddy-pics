@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveWorkout, type WorkoutSet } from "@/lib/workoutStore";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   EXERCISES,
   CATEGORY_LABELS,
@@ -19,6 +20,7 @@ interface AddWorkoutSheetProps {
 }
 
 export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSheetProps) {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [sets, setSets] = useState<WorkoutSet[]>([{ reps: 10, weight: 0 }]);
   const [photo, setPhoto] = useState<string | undefined>();
@@ -59,18 +61,18 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
     setExpandedCategory((prev) => (prev === cat ? null : cat));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       toast({ title: "Enter a workout name", variant: "destructive" });
       return;
     }
-    saveWorkout({
-      id: crypto.randomUUID(),
+    if (!user) return;
+    await saveWorkout({
       name: name.trim(),
       sets,
       photo,
       date: new Date().toISOString(),
-    });
+    }, user.id);
     reset();
     onSaved();
     onClose();
