@@ -36,7 +36,7 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
     setExpandedCategory(null);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       toast({ title: "Select a cardio exercise", variant: "destructive" });
       return;
@@ -45,14 +45,14 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
       toast({ title: "Enter duration", variant: "destructive" });
       return;
     }
-    saveCardioEntry({
-      id: crypto.randomUUID(),
+    if (!user) return;
+    await saveCardioEntry({
       name: name.trim(),
       duration: parseInt(duration),
       distance: distance ? parseFloat(distance) : undefined,
       calories: calories ? parseInt(calories) : undefined,
       date: new Date().toISOString(),
-    });
+    }, user.id);
     reset();
     onSaved();
     onClose();
