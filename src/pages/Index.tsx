@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Dumbbell, Trophy, HeartPulse } from "lucide-react";
+import { Plus, Dumbbell, Trophy, HeartPulse, LogOut } from "lucide-react";
 import { getWorkouts, type Workout } from "@/lib/workoutStore";
 import { getCardioEntries, deleteCardioEntry, type CardioEntry } from "@/lib/cardioStore";
 import WorkoutCard from "@/components/WorkoutCard";
@@ -9,6 +9,8 @@ import WorkoutDetail from "@/components/WorkoutDetail";
 import BmiTracker from "@/components/BmiTracker";
 import AddCardioSheet from "@/components/AddCardioSheet";
 import CardioCard from "@/components/CardioCard";
+import WeeklySummary from "@/components/WeeklySummary";
+import { useAuth } from "@/contexts/AuthContext";
 
 function getPersonalRecords(workouts: Workout[]) {
   const prMap = new Map<string, { weight: number; reps: number; date: string }>();
@@ -23,31 +25,50 @@ function getPersonalRecords(workouts: Workout[]) {
   return Array.from(prMap.entries()).map(([name, pr]) => ({ name, ...pr }));
 }
 
-type Tab = "weights" | "cardio";
+type Tab = "weights" | "cardio" | "weekly";
 
 export default function Index() {
+  const { user, signOut } = useAuth();
   const [tab, setTab] = useState<Tab>("weights");
-  const [workouts, setWorkouts] = useState<Workout[]>(getWorkouts);
-  const [cardioEntries, setCardioEntries] = useState<CardioEntry[]>(getCardioEntries);
+  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [cardioEntries, setCardioEntries] = useState<CardioEntry[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
   const [selected, setSelected] = useState<Workout | null>(null);
 
-  const refreshWorkouts = useCallback(() => setWorkouts(getWorkouts()), []);
-  const refreshCardio = useCallback(() => setCardioEntries(getCardioEntries()), []);
+  const refreshWorkouts = useCallback(async () => {
+    const data = await getWorkouts();
+    setWorkouts(data);
+  }, []);
+
+  const refreshCardio = useCallback(async () => {
+    const data = await getCardioEntries();
+    setCardioEntries(data);
+  }, []);
+
+  useEffect(() => {
+    refreshWorkouts();
+    refreshCardio();
+  }, [refreshWorkouts, refreshCardio]);
+
   const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
 
-  const handleDeleteCardio = (id: string) => {
-    deleteCardioEntry(id);
+  const handleDeleteCardio = async (id: string) => {
+    await deleteCardioEntry(id);
     refreshCardio();
   };
 
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div className="px-6 pt-14 pb-4">
-        <p className="text-sm text-primary font-medium tracking-wider uppercase">Your Gym</p>
-        <h1 className="text-3xl font-bold mt-1">Workouts</h1>
+      <div className="px-6 pt-14 pb-4 flex items-start justify-between">
+        <div>
+          <p className="text-sm text-primary font-medium tracking-wider uppercase">Your Gym</p>
+          <h1 className="text-3xl font-bold mt-1">Workouts</h1>
+        </div>
+        <button onClick={signOut} className="p-2 rounded-full hover:bg-secondary mt-1">
+          <LogOut className="w-5 h-5 text-muted-foreground" />
+        </button>
       </div>
 
       {/* Tabs */}
@@ -69,12 +90,19 @@ export default function Index() {
           >
             <HeartPulse className="w-4 h-4" /> Cardio
           </button>
+          <button
+            onClick={() => setTab("weekly")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
+              tab === "weekly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            <Trophy className="w-4 h-4" /> Weekly
+          </button>
         </div>
       </div>
 
       {tab === "weights" && (
         <>
-          {/* PR Section */}
           {prs.length > 0 && (
             <div className="px-4 pb-6">
               <div className="flex items-center gap-2 px-2 mb-3">
@@ -99,10 +127,8 @@ export default function Index() {
             </div>
           )}
 
-          {/* BMI Tracker */}
           <BmiTracker />
 
-          {/* Workout list */}
           <div className="px-4 space-y-3">
             {workouts.length === 0 ? (
               <motion.div
@@ -147,14 +173,20 @@ export default function Index() {
         </div>
       )}
 
-      {/* FAB */}
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        onClick={() => tab === "weights" ? setSheetOpen(true) : setCardioSheetOpen(true)}
-        className="fixed bottom-8 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg glow-primary z-20"
-      >
-        <Plus className="w-7 h-7" />
-      </motion.button>
+      {tab === "weekly" && (
+        <WeeklySummary workouts={workouts} cardioEntries={cardioEntries} />
+      )}
+
+      {/* FAB - hide on weekly tab */}
+      {tab !== "weekly" && (
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => tab === "weights" ? setSheetOpen(true) : setCardioSheetOpen(true)}
+          className="fixed bottom-8 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg glow-primary z-20"
+        >
+          <Plus className="w-7 h-7" />
+        </motion.button>
+      )}
 
       <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refreshWorkouts} />
       <AddCardioSheet open={cardioSheetOpen} onClose={() => setCardioSheetOpen(false)} onSaved={refreshCardio} />
