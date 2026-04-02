@@ -61,7 +61,6 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
     setExpandedCategory((prev) => (prev === cat ? null : cat));
   };
 
-  const handleSave = () => {
   const handleSave = async () => {
     if (!name.trim()) {
       toast({ title: "Enter a workout name", variant: "destructive" });
