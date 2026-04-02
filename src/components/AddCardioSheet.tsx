@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveCardioEntry } from "@/lib/cardioStore";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   CARDIO_EXERCISES,
   CARDIO_CATEGORY_LABELS,
