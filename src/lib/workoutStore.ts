@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface WorkoutSet {
   reps: number;
   weight: number;
@@ -7,33 +9,37 @@ export interface Workout {
   id: string;
   name: string;
   sets: WorkoutSet[];
-  photo?: string; // base64 data URL
+  photo?: string | null;
   date: string; // ISO string
 }
 
-const STORAGE_KEY = "workouts";
-
-export function getWorkouts(): Workout[] {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
+export async function getWorkouts(): Promise<Workout[]> {
+  const { data, error } = await supabase
+    .from("workouts")
+    .select("*")
+    .order("workout_date", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((w) => ({
+    id: w.id,
+    name: w.name,
+    sets: (w.sets as any) as WorkoutSet[],
+    photo: w.photo,
+    date: w.workout_date,
+  }));
 }
 
-export function saveWorkout(workout: Workout) {
-  const workouts = getWorkouts();
-  workouts.unshift(workout);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
+export async function saveWorkout(workout: Omit<Workout, "id">, userId: string) {
+  const { error } = await supabase.from("workouts").insert({
+    user_id: userId,
+    name: workout.name,
+    sets: workout.sets as any,
+    photo: workout.photo,
+    workout_date: workout.date,
+  });
+  if (error) throw error;
 }
 
-export function deleteWorkout(id: string) {
-  const workouts = getWorkouts().filter((w) => w.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(workouts));
-}
-
-export function getWorkout(id: string): Workout | undefined {
-  return getWorkouts().find((w) => w.id === id);
+export async function deleteWorkout(id: string) {
+  const { error } = await supabase.from("workouts").delete().eq("id", id);
+  if (error) throw error;
 }
