@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Camera, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   CATEGORY_COLORS,
   type ExerciseCategory,
 } from "@/lib/exercises";
+import { getCustomExercises, saveCustomExercise, type CustomExercise } from "@/lib/customExerciseStore";
 
 interface AddWorkoutSheetProps {
   open: boolean;
@@ -27,6 +28,13 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const [pickerOpen, setPickerOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<ExerciseCategory | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+
+  useEffect(() => {
+    if (user && open) {
+      getCustomExercises(user.id, "workout").then(setCustomExercises).catch(() => {});
+    }
+  }, [user, open]);
 
   const reset = () => {
     setName("");
@@ -67,8 +75,14 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
       return;
     }
     if (!user) return;
+    // Save custom exercise if not in predefined list
+    const trimmed = name.trim();
+    const isPreset = EXERCISES.some((e) => e.name === trimmed);
+    if (!isPreset) {
+      await saveCustomExercise(user.id, trimmed, "workout", "custom").catch(() => {});
+    }
     await saveWorkout({
-      name: name.trim(),
+      name: trimmed,
       sets,
       photo,
       date: new Date().toISOString(),
@@ -178,6 +192,35 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
                           </AnimatePresence>
                         </div>
                       ))}
+                      {/* Custom saved exercises */}
+                      {customExercises.length > 0 && (
+                        <div>
+                          <button
+                            onClick={() => setExpandedCategory(expandedCategory === ("custom" as any) ? null : ("custom" as any))}
+                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border"
+                          >
+                            <span className="font-display font-semibold text-sm uppercase tracking-wider text-emerald-400">Custom</span>
+                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedCategory === ("custom" as any) ? "rotate-180" : ""}`} />
+                          </button>
+                          <AnimatePresence>
+                            {expandedCategory === ("custom" as any) && (
+                              <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
+                                {customExercises.map((exercise) => (
+                                  <button
+                                    key={exercise.id}
+                                    onClick={() => selectExercise(exercise.name)}
+                                    className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors ${
+                                      name === exercise.name ? "text-primary font-medium" : "text-foreground"
+                                    }`}
+                                  >
+                                    {exercise.name}
+                                  </button>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )}
                       {/* Custom option */}
                       <div className="px-4 py-3 border-t border-border">
                         <Input

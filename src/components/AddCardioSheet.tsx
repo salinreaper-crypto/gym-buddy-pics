@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronDown, Timer, Flame, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   CARDIO_CATEGORY_LABELS,
   CARDIO_CATEGORY_COLORS,
 } from "@/lib/cardioExercises";
+import { getCustomExercises, saveCustomExercise, type CustomExercise } from "@/lib/customExerciseStore";
 
 interface AddCardioSheetProps {
   open: boolean;
@@ -26,6 +27,13 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
   const [calories, setCalories] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+
+  useEffect(() => {
+    if (user && open) {
+      getCustomExercises(user.id, "cardio").then(setCustomExercises).catch(() => {});
+    }
+  }, [user, open]);
 
   const reset = () => {
     setName("");
@@ -46,8 +54,14 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
       return;
     }
     if (!user) return;
+    const trimmed = name.trim();
+    // Save custom exercise if not in predefined list
+    const isPreset = CARDIO_EXERCISES.some((e) => e.name === trimmed);
+    if (!isPreset) {
+      await saveCustomExercise(user.id, trimmed, "cardio", "custom").catch(() => {});
+    }
     await saveCardioEntry({
-      name: name.trim(),
+      name: trimmed,
       duration: parseInt(duration),
       distance: distance ? parseFloat(distance) : undefined,
       calories: calories ? parseInt(calories) : undefined,
@@ -137,6 +151,35 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
                           </AnimatePresence>
                         </div>
                       ))}
+                      {/* Custom saved exercises */}
+                      {customExercises.length > 0 && (
+                        <div>
+                          <button
+                            onClick={() => setExpandedCategory(expandedCategory === "custom" ? null : "custom")}
+                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border"
+                          >
+                            <span className="font-display font-semibold text-sm uppercase tracking-wider text-emerald-400">Custom</span>
+                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedCategory === "custom" ? "rotate-180" : ""}`} />
+                          </button>
+                          <AnimatePresence>
+                            {expandedCategory === "custom" && (
+                              <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
+                                {customExercises.map((exercise) => (
+                                  <button
+                                    key={exercise.id}
+                                    onClick={() => { setName(exercise.name); setPickerOpen(false); }}
+                                    className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors ${
+                                      name === exercise.name ? "text-primary font-medium" : "text-foreground"
+                                    }`}
+                                  >
+                                    {exercise.name}
+                                  </button>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )}
                       <div className="px-4 py-3 border-t border-border">
                         <Input
                           placeholder="Or type a custom name..."
