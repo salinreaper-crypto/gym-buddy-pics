@@ -39,6 +39,11 @@ export async function saveWorkout(workout: Omit<Workout, "id">, userId: string) 
   if (error) throw error;
 }
 
+export async function updateWorkoutSets(id: string, sets: WorkoutSet[]) {
+  const { error } = await supabase.from("workouts").update({ sets: sets as any }).eq("id", id);
+  if (error) throw error;
+}
+
 export async function deleteWorkout(id: string) {
   const { error } = await supabase.from("workouts").delete().eq("id", id);
   if (error) throw error;
