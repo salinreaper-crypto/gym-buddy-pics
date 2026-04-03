@@ -54,8 +54,14 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
       return;
     }
     if (!user) return;
+    const trimmed = name.trim();
+    // Save custom exercise if not in predefined list
+    const isPreset = CARDIO_EXERCISES.some((e) => e.name === trimmed);
+    if (!isPreset) {
+      await saveCustomExercise(user.id, trimmed, "cardio", "custom").catch(() => {});
+    }
     await saveCardioEntry({
-      name: name.trim(),
+      name: trimmed,
       duration: parseInt(duration),
       distance: distance ? parseFloat(distance) : undefined,
       calories: calories ? parseInt(calories) : undefined,
