@@ -27,6 +27,13 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
   const [calories, setCalories] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+
+  useEffect(() => {
+    if (user && open) {
+      getCustomExercises(user.id, "cardio").then(setCustomExercises).catch(() => {});
+    }
+  }, [user, open]);
 
   const reset = () => {
     setName("");
