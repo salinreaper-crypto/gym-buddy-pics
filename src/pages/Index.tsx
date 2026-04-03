@@ -191,7 +191,7 @@ export default function Index() {
       <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refreshWorkouts} />
       <AddCardioSheet open={cardioSheetOpen} onClose={() => setCardioSheetOpen(false)} onSaved={refreshCardio} />
       {selected && (
-        <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshWorkouts} />
+        <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshWorkouts} onUpdated={refreshWorkouts} />
       )}
     </div>
   );
