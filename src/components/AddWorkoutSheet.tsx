@@ -75,8 +75,14 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
       return;
     }
     if (!user) return;
+    // Save custom exercise if not in predefined list
+    const trimmed = name.trim();
+    const isPreset = EXERCISES.some((e) => e.name === trimmed);
+    if (!isPreset) {
+      await saveCustomExercise(user.id, trimmed, "workout", "custom").catch(() => {});
+    }
     await saveWorkout({
-      name: name.trim(),
+      name: trimmed,
       sets,
       photo,
       date: new Date().toISOString(),
