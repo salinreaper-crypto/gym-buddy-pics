@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Camera, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   CATEGORY_COLORS,
   type ExerciseCategory,
 } from "@/lib/exercises";
+import { getCustomExercises, saveCustomExercise, type CustomExercise } from "@/lib/customExerciseStore";
 
 interface AddWorkoutSheetProps {
   open: boolean;
