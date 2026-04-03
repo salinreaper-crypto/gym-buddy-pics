@@ -231,6 +231,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
