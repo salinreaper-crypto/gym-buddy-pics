@@ -28,6 +28,13 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const [pickerOpen, setPickerOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<ExerciseCategory | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+
+  useEffect(() => {
+    if (user && open) {
+      getCustomExercises(user.id, "workout").then(setCustomExercises).catch(() => {});
+    }
+  }, [user, open]);
 
   const reset = () => {
     setName("");
