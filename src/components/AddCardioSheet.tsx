@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronDown, Timer, Flame, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   CARDIO_CATEGORY_LABELS,
   CARDIO_CATEGORY_COLORS,
 } from "@/lib/cardioExercises";
+import { getCustomExercises, saveCustomExercise, type CustomExercise } from "@/lib/customExerciseStore";
 
 interface AddCardioSheetProps {
   open: boolean;
