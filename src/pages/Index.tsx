@@ -45,27 +45,43 @@ export default function Index() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
   const [selected, setSelected] = useState<Workout | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
 
-  const refreshWorkouts = useCallback(async () => {
-    const data = await getWorkouts();
-    setWorkouts(data);
+  const refreshLocal = useCallback(() => {
+    setWorkouts(getLocalWorkouts());
+    setCardioEntries(getLocalCardio());
+    setPendingCount(getPendingCount());
   }, []);
 
-  const refreshCardio = useCallback(async () => {
-    const data = await getCardioEntries();
-    setCardioEntries(data);
-  }, []);
-
+  // On mount, pull from cloud then load local
   useEffect(() => {
-    refreshWorkouts();
-    refreshCardio();
-  }, [refreshWorkouts, refreshCardio]);
+    pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
+  }, [refreshLocal]);
 
   const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
 
-  const handleDeleteCardio = async (id: string) => {
-    await deleteCardioEntry(id);
-    refreshCardio();
+  const handleDeleteCardio = (id: string) => {
+    deleteLocalCardio(id);
+    refreshLocal();
+  };
+
+  const handleSync = async () => {
+    if (!user) return;
+    setSyncing(true);
+    try {
+      const result = await syncToCloud(user.id);
+      if (result.success) {
+        toast({ title: `Synced ${result.synced} changes ☁️` });
+      } else {
+        toast({ title: `Synced ${result.synced} changes, some failed`, variant: "destructive" });
+      }
+      refreshLocal();
+    } catch {
+      toast({ title: "Sync failed", variant: "destructive" });
+    } finally {
+      setSyncing(false);
+    }
   };
 
   return (
