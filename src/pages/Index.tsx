@@ -92,9 +92,27 @@ export default function Index() {
           <p className="text-sm text-primary font-medium tracking-wider uppercase">Your Gym</p>
           <h1 className="text-3xl font-bold mt-1">Workouts</h1>
         </div>
-        <button onClick={signOut} className="p-2 rounded-full hover:bg-secondary mt-1">
-          <LogOut className="w-5 h-5 text-muted-foreground" />
-        </button>
+        <div className="flex items-center gap-2 mt-1">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="relative p-2 rounded-full hover:bg-secondary"
+          >
+            {syncing ? (
+              <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+            ) : (
+              <Cloud className="w-5 h-5 text-muted-foreground" />
+            )}
+            {pendingCount > 0 && !syncing && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
+          </button>
+          <button onClick={signOut} className="p-2 rounded-full hover:bg-secondary">
+            <LogOut className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
