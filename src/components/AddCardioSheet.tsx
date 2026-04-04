@@ -55,10 +55,12 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
     }
     if (!user) return;
     const trimmed = name.trim();
-    // Save custom exercise if not in predefined list
+    // Save custom exercise under the expanded category
     const isPreset = CARDIO_EXERCISES.some((e) => e.name === trimmed);
-    if (!isPreset) {
-      await saveCustomExercise(user.id, trimmed, "cardio", "custom").catch(() => {});
+    if (!isPreset && expandedCategory && expandedCategory !== "custom") {
+      await saveCustomExercise(user.id, trimmed, "cardio", expandedCategory).catch(() => {});
+    } else if (!isPreset) {
+      await saveCustomExercise(user.id, trimmed, "cardio", "machine").catch(() => {});
     }
     await saveCardioEntry({
       name: trimmed,
