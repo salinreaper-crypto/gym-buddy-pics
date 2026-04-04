@@ -59,8 +59,8 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   };
 
   useEffect(() => {
-    if (user && open) {
-      getCustomExercises(user.id, "workout").then(setCustomExercises).catch(() => {});
+    if (open) {
+      setCustomExercises(getLocalCustomExercises("workout"));
     }
   }, [user, open]);
 
