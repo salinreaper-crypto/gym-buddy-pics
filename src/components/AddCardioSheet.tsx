@@ -55,10 +55,12 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
     }
     if (!user) return;
     const trimmed = name.trim();
-    // Save custom exercise if not in predefined list
+    // Save custom exercise under the expanded category
     const isPreset = CARDIO_EXERCISES.some((e) => e.name === trimmed);
-    if (!isPreset) {
-      await saveCustomExercise(user.id, trimmed, "cardio", "custom").catch(() => {});
+    if (!isPreset && expandedCategory && expandedCategory !== "custom") {
+      await saveCustomExercise(user.id, trimmed, "cardio", expandedCategory).catch(() => {});
+    } else if (!isPreset) {
+      await saveCustomExercise(user.id, trimmed, "cardio", "machine").catch(() => {});
     }
     await saveCardioEntry({
       name: trimmed,
@@ -146,29 +148,11 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
                                     {exercise.name}
                                   </button>
                                 ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      ))}
-                      {/* Custom saved exercises */}
-                      {customExercises.length > 0 && (
-                        <div>
-                          <button
-                            onClick={() => setExpandedCategory(expandedCategory === "custom" ? null : "custom")}
-                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border"
-                          >
-                            <span className="font-display font-semibold text-sm uppercase tracking-wider text-emerald-400">Custom</span>
-                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedCategory === "custom" ? "rotate-180" : ""}`} />
-                          </button>
-                          <AnimatePresence>
-                            {expandedCategory === "custom" && (
-                              <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                                {customExercises.map((exercise) => (
+                                {customExercises.filter((e) => e.category === cat).map((exercise) => (
                                   <button
                                     key={exercise.id}
                                     onClick={() => { setName(exercise.name); setPickerOpen(false); }}
-                                    className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors ${
+                                    className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors italic ${
                                       name === exercise.name ? "text-primary font-medium" : "text-foreground"
                                     }`}
                                   >
@@ -179,7 +163,7 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
                             )}
                           </AnimatePresence>
                         </div>
-                      )}
+                      ))}
                       <div className="px-4 py-3 border-t border-border">
                         <Input
                           placeholder="Or type a custom name..."
