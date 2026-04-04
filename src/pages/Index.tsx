@@ -1,8 +1,17 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Dumbbell, Trophy, HeartPulse, LogOut } from "lucide-react";
-import { getWorkouts, type Workout } from "@/lib/workoutStore";
-import { getCardioEntries, deleteCardioEntry, type CardioEntry } from "@/lib/cardioStore";
+import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud } from "lucide-react";
+import { type Workout } from "@/lib/workoutStore";
+import { type CardioEntry } from "@/lib/cardioStore";
+import {
+  getLocalWorkouts,
+  getLocalCardio,
+  deleteLocalCardio,
+  pullFromCloud,
+  syncToCloud,
+  hasPendingChanges,
+  getPendingCount,
+} from "@/lib/localStore";
 import WorkoutCard from "@/components/WorkoutCard";
 import AddWorkoutSheet from "@/components/AddWorkoutSheet";
 import WorkoutDetail from "@/components/WorkoutDetail";
@@ -11,6 +20,7 @@ import AddCardioSheet from "@/components/AddCardioSheet";
 import CardioCard from "@/components/CardioCard";
 import WeeklySummary from "@/components/WeeklySummary";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 function getPersonalRecords(workouts: Workout[]) {
   const prMap = new Map<string, { weight: number; reps: number; date: string }>();
