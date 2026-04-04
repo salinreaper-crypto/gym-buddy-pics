@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronDown, Timer, Flame, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { saveCardioEntry } from "@/lib/cardioStore";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -11,7 +10,8 @@ import {
   CARDIO_CATEGORY_LABELS,
   CARDIO_CATEGORY_COLORS,
 } from "@/lib/cardioExercises";
-import { getCustomExercises, saveCustomExercise, type CustomExercise } from "@/lib/customExerciseStore";
+import { type CustomExercise } from "@/lib/customExerciseStore";
+import { saveLocalCardio, saveLocalCustomExercise, getLocalCustomExercises } from "@/lib/localStore";
 
 interface AddCardioSheetProps {
   open: boolean;
