@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Trash2, Dumbbell, Plus, Pencil, Check, X } from "lucide-react";
 import type { Workout, WorkoutSet } from "@/lib/workoutStore";
-import { deleteWorkout, updateWorkoutSets } from "@/lib/workoutStore";
+import { updateLocalWorkoutSets, deleteLocalWorkout } from "@/lib/localStore";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 
@@ -49,20 +49,20 @@ export default function WorkoutDetail({ workout, onBack, onDeleted, onUpdated }:
     setSets((prev) => prev.filter((_, idx) => idx !== i));
   };
 
-  const saveEdit = async () => {
+  const saveEdit = () => {
     if (sets.length === 0) {
       toast({ title: "Add at least one set", variant: "destructive" });
       return;
     }
-    await updateWorkoutSets(workout.id, sets);
+    updateLocalWorkoutSets(workout.id, sets);
     workout.sets = sets;
     setEditing(false);
     onUpdated?.();
     toast({ title: "Workout updated! 💪" });
   };
 
-  const handleDelete = async () => {
-    await deleteWorkout(workout.id);
+  const handleDelete = () => {
+    deleteLocalWorkout(workout.id);
     toast({ title: "Workout deleted" });
     onDeleted();
     onBack();

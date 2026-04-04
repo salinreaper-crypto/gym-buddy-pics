@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Camera, Trash2, ChevronDown, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { saveWorkout, type WorkoutSet } from "@/lib/workoutStore";
+import { type WorkoutSet } from "@/lib/workoutStore";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { saveLocalWorkout, saveLocalCustomExercise, getLocalCustomExercises } from "@/lib/localStore";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   EXERCISES,
@@ -13,7 +14,7 @@ import {
   CATEGORY_COLORS,
   type ExerciseCategory,
 } from "@/lib/exercises";
-import { getCustomExercises, saveCustomExercise, type CustomExercise } from "@/lib/customExerciseStore";
+import { type CustomExercise } from "@/lib/customExerciseStore";
 
 interface AddWorkoutSheetProps {
   open: boolean;
@@ -58,8 +59,8 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   };
 
   useEffect(() => {
-    if (user && open) {
-      getCustomExercises(user.id, "workout").then(setCustomExercises).catch(() => {});
+    if (open) {
+      setCustomExercises(getLocalCustomExercises("workout"));
     }
   }, [user, open]);
 
@@ -102,20 +103,19 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
       return;
     }
     if (!user) return;
-    // Save custom exercise under the selected category
     const trimmed = name.trim();
     const isPreset = EXERCISES.some((e) => e.name === trimmed);
     if (!isPreset && expandedCategory && expandedCategory !== ("custom" as any)) {
-      await saveCustomExercise(user.id, trimmed, "workout", expandedCategory).catch(() => {});
+      saveLocalCustomExercise(trimmed, "workout", expandedCategory);
     } else if (!isPreset) {
-      await saveCustomExercise(user.id, trimmed, "workout", "push").catch(() => {});
+      saveLocalCustomExercise(trimmed, "workout", "push");
     }
-    await saveWorkout({
+    saveLocalWorkout({
       name: trimmed,
       sets,
       photo,
       date: new Date().toISOString(),
-    }, user.id);
+    });
     reset();
     onSaved();
     onClose();

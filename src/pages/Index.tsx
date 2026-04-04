@@ -1,8 +1,17 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Dumbbell, Trophy, HeartPulse, LogOut } from "lucide-react";
-import { getWorkouts, type Workout } from "@/lib/workoutStore";
-import { getCardioEntries, deleteCardioEntry, type CardioEntry } from "@/lib/cardioStore";
+import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud } from "lucide-react";
+import { type Workout } from "@/lib/workoutStore";
+import { type CardioEntry } from "@/lib/cardioStore";
+import {
+  getLocalWorkouts,
+  getLocalCardio,
+  deleteLocalCardio,
+  pullFromCloud,
+  syncToCloud,
+  hasPendingChanges,
+  getPendingCount,
+} from "@/lib/localStore";
 import WorkoutCard from "@/components/WorkoutCard";
 import AddWorkoutSheet from "@/components/AddWorkoutSheet";
 import WorkoutDetail from "@/components/WorkoutDetail";
@@ -11,6 +20,7 @@ import AddCardioSheet from "@/components/AddCardioSheet";
 import CardioCard from "@/components/CardioCard";
 import WeeklySummary from "@/components/WeeklySummary";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/hooks/use-toast";
 
 function getPersonalRecords(workouts: Workout[]) {
   const prMap = new Map<string, { weight: number; reps: number; date: string }>();
@@ -35,27 +45,43 @@ export default function Index() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
   const [selected, setSelected] = useState<Workout | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
 
-  const refreshWorkouts = useCallback(async () => {
-    const data = await getWorkouts();
-    setWorkouts(data);
+  const refreshLocal = useCallback(() => {
+    setWorkouts(getLocalWorkouts());
+    setCardioEntries(getLocalCardio());
+    setPendingCount(getPendingCount());
   }, []);
 
-  const refreshCardio = useCallback(async () => {
-    const data = await getCardioEntries();
-    setCardioEntries(data);
-  }, []);
-
+  // On mount, pull from cloud then load local
   useEffect(() => {
-    refreshWorkouts();
-    refreshCardio();
-  }, [refreshWorkouts, refreshCardio]);
+    pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
+  }, [refreshLocal]);
 
   const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
 
-  const handleDeleteCardio = async (id: string) => {
-    await deleteCardioEntry(id);
-    refreshCardio();
+  const handleDeleteCardio = (id: string) => {
+    deleteLocalCardio(id);
+    refreshLocal();
+  };
+
+  const handleSync = async () => {
+    if (!user) return;
+    setSyncing(true);
+    try {
+      const result = await syncToCloud(user.id);
+      if (result.success) {
+        toast({ title: `Synced ${result.synced} changes ☁️` });
+      } else {
+        toast({ title: `Synced ${result.synced} changes, some failed`, variant: "destructive" });
+      }
+      refreshLocal();
+    } catch {
+      toast({ title: "Sync failed", variant: "destructive" });
+    } finally {
+      setSyncing(false);
+    }
   };
 
   return (
@@ -66,9 +92,27 @@ export default function Index() {
           <p className="text-sm text-primary font-medium tracking-wider uppercase">Your Gym</p>
           <h1 className="text-3xl font-bold mt-1">Workouts</h1>
         </div>
-        <button onClick={signOut} className="p-2 rounded-full hover:bg-secondary mt-1">
-          <LogOut className="w-5 h-5 text-muted-foreground" />
-        </button>
+        <div className="flex items-center gap-2 mt-1">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="relative p-2 rounded-full hover:bg-secondary"
+          >
+            {syncing ? (
+              <RefreshCw className="w-5 h-5 text-primary animate-spin" />
+            ) : (
+              <Cloud className="w-5 h-5 text-muted-foreground" />
+            )}
+            {pendingCount > 0 && !syncing && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                {pendingCount}
+              </span>
+            )}
+          </button>
+          <button onClick={signOut} className="p-2 rounded-full hover:bg-secondary">
+            <LogOut className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -188,10 +232,10 @@ export default function Index() {
         </motion.button>
       )}
 
-      <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refreshWorkouts} />
-      <AddCardioSheet open={cardioSheetOpen} onClose={() => setCardioSheetOpen(false)} onSaved={refreshCardio} />
+      <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refreshLocal} />
+      <AddCardioSheet open={cardioSheetOpen} onClose={() => setCardioSheetOpen(false)} onSaved={refreshLocal} />
       {selected && (
-        <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshWorkouts} onUpdated={refreshWorkouts} />
+        <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshLocal} onUpdated={refreshLocal} />
       )}
     </div>
   );
