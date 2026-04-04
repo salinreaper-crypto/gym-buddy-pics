@@ -30,6 +30,32 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const [expandedCategory, setExpandedCategory] = useState<ExerciseCategory | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+  const [searchingPhoto, setSearchingPhoto] = useState(false);
+
+  const handleSearchPhoto = async () => {
+    if (!name.trim()) {
+      toast({ title: "Select an exercise first", variant: "destructive" });
+      return;
+    }
+    setSearchingPhoto(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("search-exercise-image", {
+        body: { exerciseName: name.trim() },
+      });
+      if (error) throw error;
+      if (data?.imageUrl) {
+        setPhoto(data.imageUrl);
+        toast({ title: "Photo found! 📸" });
+      } else {
+        toast({ title: "No photo found", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Failed to find photo", variant: "destructive" });
+    } finally {
+      setSearchingPhoto(false);
+    }
+  };
 
   useEffect(() => {
     if (user && open) {
