@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Camera, Trash2, ChevronDown } from "lucide-react";
+import { X, Plus, Camera, Trash2, ChevronDown, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { saveWorkout, type WorkoutSet } from "@/lib/workoutStore";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   EXERCISES,
@@ -29,6 +30,32 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const [expandedCategory, setExpandedCategory] = useState<ExerciseCategory | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+  const [searchingPhoto, setSearchingPhoto] = useState(false);
+
+  const handleSearchPhoto = async () => {
+    if (!name.trim()) {
+      toast({ title: "Select an exercise first", variant: "destructive" });
+      return;
+    }
+    setSearchingPhoto(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("search-exercise-image", {
+        body: { exerciseName: name.trim() },
+      });
+      if (error) throw error;
+      if (data?.imageUrl) {
+        setPhoto(data.imageUrl);
+        toast({ title: "Photo found! 📸" });
+      } else {
+        toast({ title: "No photo found", variant: "destructive" });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Failed to find photo", variant: "destructive" });
+    } finally {
+      setSearchingPhoto(false);
+    }
+  };
 
   useEffect(() => {
     if (user && open) {
@@ -124,19 +151,46 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
 
             {/* Photo */}
             <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhoto} />
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="w-full h-40 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 mb-6 overflow-hidden hover:border-primary/50 transition-colors"
-            >
+            <div className="mb-6">
               {photo ? (
-                <img src={photo} alt="Machine" className="w-full h-full object-cover" />
+                <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border">
+                  <img src={photo} alt="Machine" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => setPhoto(undefined)}
+                    className="absolute top-2 right-2 p-1 bg-background/80 rounded-full hover:bg-background"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               ) : (
-                <>
-                  <Camera className="w-8 h-8 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Tap to take a photo</span>
-                </>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    className="h-28 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors"
+                  >
+                    <Camera className="w-6 h-6 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Take Photo</span>
+                  </button>
+                  <button
+                    onClick={handleSearchPhoto}
+                    disabled={searchingPhoto}
+                    className="h-28 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors disabled:opacity-50"
+                  >
+                    {searchingPhoto ? (
+                      <>
+                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                        <span className="text-xs text-muted-foreground">Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-6 h-6 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Find Photo</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               )}
-            </button>
+            </div>
 
             {/* Exercise Picker */}
             <div className="mb-6 relative">
