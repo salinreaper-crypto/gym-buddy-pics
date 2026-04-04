@@ -214,10 +214,10 @@ export default function Index() {
         </motion.button>
       )}
 
-      <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refreshWorkouts} />
-      <AddCardioSheet open={cardioSheetOpen} onClose={() => setCardioSheetOpen(false)} onSaved={refreshCardio} />
+      <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refreshLocal} />
+      <AddCardioSheet open={cardioSheetOpen} onClose={() => setCardioSheetOpen(false)} onSaved={refreshLocal} />
       {selected && (
-        <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshWorkouts} onUpdated={refreshWorkouts} />
+        <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshLocal} onUpdated={refreshLocal} />
       )}
     </div>
   );
