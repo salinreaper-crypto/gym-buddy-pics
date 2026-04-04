@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Camera, Trash2, ChevronDown, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { saveWorkout, type WorkoutSet } from "@/lib/workoutStore";
+import { type WorkoutSet } from "@/lib/workoutStore";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { saveLocalWorkout, saveLocalCustomExercise, getLocalCustomExercises } from "@/lib/localStore";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   EXERCISES,
