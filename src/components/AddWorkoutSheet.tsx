@@ -75,11 +75,13 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
       return;
     }
     if (!user) return;
-    // Save custom exercise if not in predefined list
+    // Save custom exercise under the selected category
     const trimmed = name.trim();
     const isPreset = EXERCISES.some((e) => e.name === trimmed);
-    if (!isPreset) {
-      await saveCustomExercise(user.id, trimmed, "workout", "custom").catch(() => {});
+    if (!isPreset && expandedCategory && expandedCategory !== ("custom" as any)) {
+      await saveCustomExercise(user.id, trimmed, "workout", expandedCategory).catch(() => {});
+    } else if (!isPreset) {
+      await saveCustomExercise(user.id, trimmed, "workout", "push").catch(() => {});
     }
     await saveWorkout({
       name: trimmed,
