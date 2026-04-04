@@ -30,10 +30,10 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
 
   useEffect(() => {
-    if (user && open) {
-      getCustomExercises(user.id, "cardio").then(setCustomExercises).catch(() => {});
+    if (open) {
+      setCustomExercises(getLocalCustomExercises("cardio"));
     }
-  }, [user, open]);
+  }, [open]);
 
   const reset = () => {
     setName("");
