@@ -206,35 +206,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
                           </AnimatePresence>
                         </div>
                       ))}
-                      {/* Custom saved exercises */}
-                      {customExercises.length > 0 && (
-                        <div>
-                          <button
-                            onClick={() => setExpandedCategory(expandedCategory === ("custom" as any) ? null : ("custom" as any))}
-                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border"
-                          >
-                            <span className="font-display font-semibold text-sm uppercase tracking-wider text-emerald-400">Custom</span>
-                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedCategory === ("custom" as any) ? "rotate-180" : ""}`} />
-                          </button>
-                          <AnimatePresence>
-                            {expandedCategory === ("custom" as any) && (
-                              <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
-                                {customExercises.map((exercise) => (
-                                  <button
-                                    key={exercise.id}
-                                    onClick={() => selectExercise(exercise.name)}
-                                    className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors ${
-                                      name === exercise.name ? "text-primary font-medium" : "text-foreground"
-                                    }`}
-                                  >
-                                    {exercise.name}
-                                  </button>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      )}
+                      {/* Custom exercises with no matching category */}
                       {/* Custom option */}
                       <div className="px-4 py-3 border-t border-border">
                         <Input
