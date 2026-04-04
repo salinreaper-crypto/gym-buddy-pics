@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Trash2, Dumbbell, Plus, Pencil, Check, X } from "lucide-react";
 import type { Workout, WorkoutSet } from "@/lib/workoutStore";
-import { deleteWorkout, updateWorkoutSets } from "@/lib/workoutStore";
+import { updateLocalWorkoutSets, deleteLocalWorkout } from "@/lib/localStore";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 
