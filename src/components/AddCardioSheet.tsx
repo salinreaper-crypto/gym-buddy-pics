@@ -148,6 +148,17 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
                                     {exercise.name}
                                   </button>
                                 ))}
+                                {customExercises.filter((e) => e.category === cat).map((exercise) => (
+                                  <button
+                                    key={exercise.id}
+                                    onClick={() => { setName(exercise.name); setPickerOpen(false); }}
+                                    className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors italic ${
+                                      name === exercise.name ? "text-primary font-medium" : "text-foreground"
+                                    }`}
+                                  >
+                                    {exercise.name}
+                                  </button>
+                                ))}
                               </motion.div>
                             )}
                           </AnimatePresence>
