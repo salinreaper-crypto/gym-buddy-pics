@@ -55,20 +55,19 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
     }
     if (!user) return;
     const trimmed = name.trim();
-    // Save custom exercise under the expanded category
     const isPreset = CARDIO_EXERCISES.some((e) => e.name === trimmed);
     if (!isPreset && expandedCategory && expandedCategory !== "custom") {
-      await saveCustomExercise(user.id, trimmed, "cardio", expandedCategory).catch(() => {});
+      saveLocalCustomExercise(trimmed, "cardio", expandedCategory);
     } else if (!isPreset) {
-      await saveCustomExercise(user.id, trimmed, "cardio", "machine").catch(() => {});
+      saveLocalCustomExercise(trimmed, "cardio", "machine");
     }
-    await saveCardioEntry({
+    saveLocalCardio({
       name: trimmed,
       duration: parseInt(duration),
       distance: distance ? parseFloat(distance) : undefined,
       calories: calories ? parseInt(calories) : undefined,
       date: new Date().toISOString(),
-    }, user.id);
+    });
     reset();
     onSaved();
     onClose();
