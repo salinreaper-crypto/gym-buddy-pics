@@ -14,7 +14,7 @@ import {
   CATEGORY_COLORS,
   type ExerciseCategory,
 } from "@/lib/exercises";
-import { getCustomExercises, saveCustomExercise, type CustomExercise } from "@/lib/customExerciseStore";
+import { type CustomExercise } from "@/lib/customExerciseStore";
 
 interface AddWorkoutSheetProps {
   open: boolean;
