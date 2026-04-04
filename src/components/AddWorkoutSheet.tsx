@@ -189,6 +189,18 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
                                     {exercise.name}
                                   </button>
                                 ))}
+                                {/* Custom exercises saved under this category */}
+                                {customExercises.filter((e) => e.category === cat).map((exercise) => (
+                                  <button
+                                    key={exercise.id}
+                                    onClick={() => selectExercise(exercise.name)}
+                                    className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors italic ${
+                                      name === exercise.name ? "text-primary font-medium" : "text-foreground"
+                                    }`}
+                                  >
+                                    {exercise.name}
+                                  </button>
+                                ))}
                               </motion.div>
                             )}
                           </AnimatePresence>
