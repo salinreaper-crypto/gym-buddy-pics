@@ -84,6 +84,8 @@ export default function Index() {
     });
   };
 
+  const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
+
   const handleDeleteCardio = (id: string) => {
     deleteLocalCardio(id);
     refreshLocal();
