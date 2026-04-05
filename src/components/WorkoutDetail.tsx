@@ -16,6 +16,8 @@ interface WorkoutDetailProps {
 export default function WorkoutDetail({ workout, onBack, onDeleted, onUpdated }: WorkoutDetailProps) {
   const [editing, setEditing] = useState(false);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
+  const TIMER_OPTIONS = [60, 90, 120, 180, 300];
+  const [timerDuration, setTimerDuration] = useState(120);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -24,23 +26,23 @@ export default function WorkoutDetail({ workout, onBack, onDeleted, onUpdated }:
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = null;
     setTimerRunning(false);
-    setTimeLeft(120);
-  }, []);
+    setTimeLeft(timerDuration);
+  }, [timerDuration]);
 
   const startTimer = useCallback(() => {
-    setTimeLeft(120);
+    setTimeLeft(timerDuration);
     setTimerRunning(true);
     intervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           stopTimer();
           toast({ title: "Rest over! 💪 Get back to it!" });
-          return 120;
+          return timerDuration;
         }
         return prev - 1;
       });
     }, 1000);
-  }, [stopTimer]);
+  }, [stopTimer, timerDuration]);
 
   useEffect(() => {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
@@ -193,7 +195,7 @@ export default function WorkoutDetail({ workout, onBack, onDeleted, onUpdated }:
 
           {/* Rest Timer */}
           <div className="glass-card rounded-lg p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Timer className="w-5 h-5 text-primary" />
                 <span className="font-display font-semibold text-sm">Rest Timer</span>
@@ -213,11 +215,28 @@ export default function WorkoutDetail({ workout, onBack, onDeleted, onUpdated }:
                 )}
               </div>
             </div>
+            {!timerRunning && (
+              <div className="flex gap-2 mb-2">
+                {TIMER_OPTIONS.map((sec) => (
+                  <button
+                    key={sec}
+                    onClick={() => { setTimerDuration(sec); setTimeLeft(sec); }}
+                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      timerDuration === sec
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {sec >= 60 ? `${sec / 60}m` : `${sec}s`}
+                  </button>
+                ))}
+              </div>
+            )}
             {timerRunning && (
-              <div className="mt-3 h-1.5 bg-secondary rounded-full overflow-hidden">
+              <div className="mt-1 h-1.5 bg-secondary rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary rounded-full transition-all duration-1000"
-                  style={{ width: `${(timeLeft / 120) * 100}%` }}
+                  style={{ width: `${(timeLeft / timerDuration) * 100}%` }}
                 />
               </div>
             )}
