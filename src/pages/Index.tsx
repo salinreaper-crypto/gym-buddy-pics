@@ -38,7 +38,7 @@ function getPersonalRecords(workouts: Workout[]) {
 type Tab = "weights" | "cardio" | "weekly";
 
 export default function Index() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const [tab, setTab] = useState<Tab>("weights");
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [cardioEntries, setCardioEntries] = useState<CardioEntry[]>([]);
@@ -54,10 +54,12 @@ export default function Index() {
     setPendingCount(getPendingCount());
   }, []);
 
-  // On mount, pull from cloud then load local
+  // Wait for auth to be ready before pulling from cloud
+  
   useEffect(() => {
+    if (loading) return;
     pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
-  }, [refreshLocal]);
+  }, [loading, refreshLocal]);
 
   const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
 
