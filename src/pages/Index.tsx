@@ -54,10 +54,12 @@ export default function Index() {
     setPendingCount(getPendingCount());
   }, []);
 
-  // On mount, pull from cloud then load local
+  // Wait for auth to be ready before pulling from cloud
+  const { loading } = useAuth();
   useEffect(() => {
+    if (loading) return;
     pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
-  }, [refreshLocal]);
+  }, [loading, refreshLocal]);
 
   const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
 
