@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud } from "lucide-react";
 import { type Workout } from "@/lib/workoutStore";
@@ -60,6 +61,28 @@ export default function Index() {
     if (loading) return;
     pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
   }, [loading, refreshLocal]);
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+
+  const workoutsByDate = useMemo(() => {
+    const grouped = new Map<string, Workout[]>();
+    for (const w of workouts) {
+      const dateKey = new Date(w.date).toLocaleDateString("en-US", {
+        weekday: "short", month: "short", day: "numeric", year: "numeric",
+      });
+      if (!grouped.has(dateKey)) grouped.set(dateKey, []);
+      grouped.get(dateKey)!.push(w);
+    }
+    return Array.from(grouped.entries());
+  }, [workouts]);
+
+  const toggleDate = (date: string) => {
+    setExpandedDates(prev => {
+      const next = new Set(prev);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      return next;
+    });
+  };
 
   const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
 
@@ -189,8 +212,26 @@ export default function Index() {
                 <p className="text-muted-foreground text-sm mt-1">Tap + to log your first workout</p>
               </motion.div>
             ) : (
-              workouts.map((w, i) => (
-                <WorkoutCard key={w.id} workout={w} index={i} onClick={() => setSelected(w)} />
+              workoutsByDate.map(([dateKey, dateWorkouts]) => (
+                <div key={dateKey}>
+                  <button
+                    onClick={() => toggleDate(dateKey)}
+                    className="w-full flex items-center justify-between py-2 px-1 text-left"
+                  >
+                    <span className="text-sm font-display font-semibold text-muted-foreground">{dateKey}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{dateWorkouts.length} workout{dateWorkouts.length > 1 ? "s" : ""}</span>
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedDates.has(dateKey) ? "rotate-180" : ""}`} />
+                    </div>
+                  </button>
+                  {expandedDates.has(dateKey) && (
+                    <div className="space-y-2 pb-2">
+                      {dateWorkouts.map((w, i) => (
+                        <WorkoutCard key={w.id} workout={w} index={i} onClick={() => setSelected(w)} />
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))
             )}
           </div>
