@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Trash2, Dumbbell, Plus, Pencil, Check, X } from "lucide-react";
+import { ArrowLeft, Trash2, Dumbbell, Plus, Pencil, Check, X, Timer, Play, Square } from "lucide-react";
 import type { Workout, WorkoutSet } from "@/lib/workoutStore";
 import { updateLocalWorkoutSets, deleteLocalWorkout } from "@/lib/localStore";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,35 @@ interface WorkoutDetailProps {
 export default function WorkoutDetail({ workout, onBack, onDeleted, onUpdated }: WorkoutDetailProps) {
   const [editing, setEditing] = useState(false);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopTimer = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = null;
+    setTimerRunning(false);
+    setTimeLeft(120);
+  }, []);
+
+  const startTimer = useCallback(() => {
+    setTimeLeft(120);
+    setTimerRunning(true);
+    intervalRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          stopTimer();
+          toast({ title: "Rest over! 💪 Get back to it!" });
+          return 120;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [stopTimer]);
+
+  useEffect(() => {
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, []);
 
   if (!workout) return null;
 
@@ -160,6 +189,38 @@ export default function WorkoutDetail({ workout, onBack, onDeleted, onUpdated }:
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Rest Timer */}
+          <div className="glass-card rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Timer className="w-5 h-5 text-primary" />
+                <span className="font-display font-semibold text-sm">Rest Timer</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className={`font-mono text-2xl font-bold ${timeLeft <= 10 && timerRunning ? "text-destructive animate-pulse" : "text-foreground"}`}>
+                  {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+                </span>
+                {timerRunning ? (
+                  <button onClick={stopTimer} className="p-2 rounded-full bg-destructive/10 text-destructive">
+                    <Square className="w-5 h-5" />
+                  </button>
+                ) : (
+                  <button onClick={startTimer} className="p-2 rounded-full bg-primary/10 text-primary">
+                    <Play className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            </div>
+            {timerRunning && (
+              <div className="mt-3 h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-1000"
+                  style={{ width: `${(timeLeft / 120) * 100}%` }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Edit actions */}
