@@ -55,11 +55,14 @@ export default function Index() {
     setPendingCount(getPendingCount());
   }, []);
 
-  // Wait for auth to be ready before pulling from cloud
-  
+  // Load local data immediately, then sync from cloud in background
+  useEffect(() => {
+    refreshLocal();
+  }, [refreshLocal]);
+
   useEffect(() => {
     if (loading) return;
-    pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
+    pullFromCloud().then(refreshLocal).catch(() => {});
   }, [loading, refreshLocal]);
   const todayKey = new Date().toLocaleDateString("en-US", {
     weekday: "short", month: "short", day: "numeric", year: "numeric",
