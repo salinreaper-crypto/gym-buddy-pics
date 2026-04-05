@@ -61,7 +61,10 @@ export default function Index() {
     if (loading) return;
     pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
   }, [loading, refreshLocal]);
-  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+  const todayKey = new Date().toLocaleDateString("en-US", {
+    weekday: "short", month: "short", day: "numeric", year: "numeric",
+  });
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set([todayKey]));
 
   const workoutsByDate = useMemo(() => {
     const grouped = new Map<string, Workout[]>();
