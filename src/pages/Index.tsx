@@ -38,7 +38,7 @@ function getPersonalRecords(workouts: Workout[]) {
 type Tab = "weights" | "cardio" | "weekly";
 
 export default function Index() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const [tab, setTab] = useState<Tab>("weights");
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [cardioEntries, setCardioEntries] = useState<CardioEntry[]>([]);
@@ -55,7 +55,7 @@ export default function Index() {
   }, []);
 
   // Wait for auth to be ready before pulling from cloud
-  const { loading } = useAuth();
+  
   useEffect(() => {
     if (loading) return;
     pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
