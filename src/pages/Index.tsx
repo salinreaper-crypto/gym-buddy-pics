@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud } from "lucide-react";
 import { type Workout } from "@/lib/workoutStore";
@@ -60,8 +61,28 @@ export default function Index() {
     if (loading) return;
     pullFromCloud().then(refreshLocal).catch(() => refreshLocal());
   }, [loading, refreshLocal]);
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
 
-  const prs = useMemo(() => getPersonalRecords(workouts), [workouts]);
+  const workoutsByDate = useMemo(() => {
+    const grouped = new Map<string, Workout[]>();
+    for (const w of workouts) {
+      const dateKey = new Date(w.date).toLocaleDateString("en-US", {
+        weekday: "short", month: "short", day: "numeric", year: "numeric",
+      });
+      if (!grouped.has(dateKey)) grouped.set(dateKey, []);
+      grouped.get(dateKey)!.push(w);
+    }
+    return Array.from(grouped.entries());
+  }, [workouts]);
+
+  const toggleDate = (date: string) => {
+    setExpandedDates(prev => {
+      const next = new Set(prev);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      return next;
+    });
+  };
 
   const handleDeleteCardio = (id: string) => {
     deleteLocalCardio(id);
