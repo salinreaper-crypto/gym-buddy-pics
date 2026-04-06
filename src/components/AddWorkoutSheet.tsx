@@ -131,7 +131,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
       saveLocalCustomExercise(trimmed, "workout", expandedCategory);
     } else if (!isPreset) {
       saveLocalCustomExercise(trimmed, "workout", "push");
-    }
+    if (photo) setCachedPhoto(trimmed, photo);
     saveLocalWorkout({
       name: trimmed,
       sets,
