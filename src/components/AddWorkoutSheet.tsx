@@ -65,6 +65,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
       if (error) throw error;
       if (data?.imageUrl) {
         setPhoto(data.imageUrl);
+        setCachedPhoto(name.trim(), data.imageUrl);
         toast({ title: "Photo found! 📸" });
       } else {
         toast({ title: "No photo found", variant: "destructive" });
