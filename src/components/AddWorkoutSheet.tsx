@@ -16,6 +16,25 @@ import {
 } from "@/lib/exercises";
 import { type CustomExercise } from "@/lib/customExerciseStore";
 
+const PHOTO_CACHE_KEY = "exercise_photo_cache";
+
+function getCachedPhoto(exerciseName: string): string | undefined {
+  try {
+    const cache = JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY) || "{}");
+    return cache[exerciseName] || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function setCachedPhoto(exerciseName: string, photoUrl: string) {
+  try {
+    const cache = JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY) || "{}");
+    cache[exerciseName] = photoUrl;
+    localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
 interface AddWorkoutSheetProps {
   open: boolean;
   onClose: () => void;
@@ -46,6 +65,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
       if (error) throw error;
       if (data?.imageUrl) {
         setPhoto(data.imageUrl);
+        setCachedPhoto(name.trim(), data.imageUrl);
         toast({ title: "Photo found! 📸" });
       } else {
         toast({ title: "No photo found", variant: "destructive" });
@@ -91,6 +111,8 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const selectExercise = (exerciseName: string) => {
     setName(exerciseName);
     setPickerOpen(false);
+    const cached = getCachedPhoto(exerciseName);
+    if (cached) setPhoto(cached);
   };
 
   const toggleCategory = (cat: ExerciseCategory) => {
@@ -110,6 +132,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
     } else if (!isPreset) {
       saveLocalCustomExercise(trimmed, "workout", "push");
     }
+    if (photo) setCachedPhoto(trimmed, photo);
     saveLocalWorkout({
       name: trimmed,
       sets,
