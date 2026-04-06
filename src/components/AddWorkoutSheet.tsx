@@ -16,6 +16,25 @@ import {
 } from "@/lib/exercises";
 import { type CustomExercise } from "@/lib/customExerciseStore";
 
+const PHOTO_CACHE_KEY = "exercise_photo_cache";
+
+function getCachedPhoto(exerciseName: string): string | undefined {
+  try {
+    const cache = JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY) || "{}");
+    return cache[exerciseName] || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function setCachedPhoto(exerciseName: string, photoUrl: string) {
+  try {
+    const cache = JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY) || "{}");
+    cache[exerciseName] = photoUrl;
+    localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
 interface AddWorkoutSheetProps {
   open: boolean;
   onClose: () => void;
