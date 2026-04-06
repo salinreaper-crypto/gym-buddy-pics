@@ -110,6 +110,8 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const selectExercise = (exerciseName: string) => {
     setName(exerciseName);
     setPickerOpen(false);
+    const cached = getCachedPhoto(exerciseName);
+    if (cached) setPhoto(cached);
   };
 
   const toggleCategory = (cat: ExerciseCategory) => {
