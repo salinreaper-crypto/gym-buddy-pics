@@ -20,6 +20,7 @@ import BmiTracker from "@/components/BmiTracker";
 import AddCardioSheet from "@/components/AddCardioSheet";
 import CardioCard from "@/components/CardioCard";
 import WeeklySummary from "@/components/WeeklySummary";
+import MuscleAnalysis from "@/components/MuscleAnalysis";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -267,7 +268,10 @@ export default function Index() {
       )}
 
       {tab === "weekly" && (
-        <WeeklySummary workouts={workouts} cardioEntries={cardioEntries} />
+        <>
+          <MuscleAnalysis workouts={workouts} />
+          <WeeklySummary workouts={workouts} cardioEntries={cardioEntries} />
+        </>
       )}
 
       {/* FAB - hide on weekly tab */}
