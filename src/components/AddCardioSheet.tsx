@@ -11,15 +11,17 @@ import {
   CARDIO_CATEGORY_COLORS,
 } from "@/lib/cardioExercises";
 import { type CustomExercise } from "@/lib/customExerciseStore";
-import { saveLocalCardio, saveLocalCustomExercise, getLocalCustomExercises } from "@/lib/localStore";
+import { type CardioEntry } from "@/lib/cardioStore";
+import { saveLocalCardio, saveLocalCustomExercise, getLocalCustomExercises, updateLocalCardio } from "@/lib/localStore";
 
 interface AddCardioSheetProps {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
+  editEntry?: CardioEntry | null;
 }
 
-export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioSheetProps) {
+export default function AddCardioSheet({ open, onClose, onSaved, editEntry }: AddCardioSheetProps) {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [duration, setDuration] = useState("");
@@ -32,8 +34,14 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
   useEffect(() => {
     if (open) {
       setCustomExercises(getLocalCustomExercises("cardio"));
+      if (editEntry) {
+        setName(editEntry.name);
+        setDuration(String(editEntry.duration));
+        setDistance(editEntry.distance ? String(editEntry.distance) : "");
+        setCalories(editEntry.calories ? String(editEntry.calories) : "");
+      }
     }
-  }, [open]);
+  }, [open, editEntry]);
 
   const reset = () => {
     setName("");
@@ -55,6 +63,21 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
     }
     if (!user) return;
     const trimmed = name.trim();
+
+    if (editEntry) {
+      updateLocalCardio(editEntry.id, {
+        name: trimmed,
+        duration: parseInt(duration),
+        distance: distance ? parseFloat(distance) : undefined,
+        calories: calories ? parseInt(calories) : undefined,
+      });
+      reset();
+      onSaved();
+      onClose();
+      toast({ title: "Cardio updated! ✏️" });
+      return;
+    }
+
     const isPreset = CARDIO_EXERCISES.some((e) => e.name === trimmed);
     if (!isPreset && expandedCategory && expandedCategory !== "custom") {
       saveLocalCustomExercise(trimmed, "cardio", expandedCategory);
@@ -95,7 +118,7 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
             className="fixed inset-x-0 bottom-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-card border-t border-border p-6 pb-10"
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-xl font-bold">Log Cardio</h2>
+              <h2 className="font-display text-xl font-bold">{editEntry ? "Edit Cardio" : "Log Cardio"}</h2>
               <button onClick={onClose} className="p-2 rounded-full hover:bg-secondary">
                 <X className="w-5 h-5" />
               </button>
@@ -227,7 +250,7 @@ export default function AddCardioSheet({ open, onClose, onSaved }: AddCardioShee
               onClick={handleSave}
               className="w-full h-12 text-base font-display font-bold bg-primary text-primary-foreground hover:bg-primary/90 glow-primary"
             >
-              Save Cardio
+              {editEntry ? "Update Cardio" : "Save Cardio"}
             </Button>
           </motion.div>
         </>

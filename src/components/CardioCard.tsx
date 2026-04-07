@@ -1,19 +1,15 @@
 import { motion } from "framer-motion";
-import { Timer, MapPin, Flame, ChevronRight } from "lucide-react";
+import { Timer, MapPin, Flame, Pencil } from "lucide-react";
 import type { CardioEntry } from "@/lib/cardioStore";
 
 interface CardioCardProps {
   entry: CardioEntry;
   index: number;
   onDelete: (id: string) => void;
+  onEdit?: (entry: CardioEntry) => void;
 }
 
-export default function CardioCard({ entry, index, onDelete }: CardioCardProps) {
-  const dateStr = new Date(entry.date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-
+export default function CardioCard({ entry, index, onDelete, onEdit }: CardioCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -23,7 +19,14 @@ export default function CardioCard({ entry, index, onDelete }: CardioCardProps) 
     >
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-display font-semibold text-foreground">{entry.name}</h3>
-        <span className="text-xs text-muted-foreground">{dateStr}</span>
+        {onEdit && (
+          <button
+            onClick={() => onEdit(entry)}
+            className="p-1.5 rounded-full hover:bg-secondary"
+          >
+            <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+          </button>
+        )}
       </div>
       <div className="flex gap-4 text-sm text-muted-foreground">
         <span className="flex items-center gap-1">

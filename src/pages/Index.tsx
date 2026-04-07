@@ -47,6 +47,7 @@ export default function Index() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [cardioSheetOpen, setCardioSheetOpen] = useState(false);
   const [selected, setSelected] = useState<Workout | null>(null);
+  const [editingCardio, setEditingCardio] = useState<CardioEntry | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -284,7 +285,7 @@ export default function Index() {
                   {expandedDates.has(dateKey) && (
                     <div className="space-y-2 pb-2">
                       {entries.map((e, i) => (
-                        <CardioCard key={e.id} entry={e} index={i} onDelete={handleDeleteCardio} />
+                        <CardioCard key={e.id} entry={e} index={i} onDelete={handleDeleteCardio} onEdit={(entry) => { setEditingCardio(entry); setCardioSheetOpen(true); }} />
                       ))}
                     </div>
                   )}
@@ -314,7 +315,7 @@ export default function Index() {
       )}
 
       <AddWorkoutSheet open={sheetOpen} onClose={() => setSheetOpen(false)} onSaved={refreshLocal} />
-      <AddCardioSheet open={cardioSheetOpen} onClose={() => setCardioSheetOpen(false)} onSaved={refreshLocal} />
+      <AddCardioSheet open={cardioSheetOpen} onClose={() => { setCardioSheetOpen(false); setEditingCardio(null); }} onSaved={refreshLocal} editEntry={editingCardio} />
       {selected && (
         <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshLocal} onUpdated={refreshLocal} />
       )}
