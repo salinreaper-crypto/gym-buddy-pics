@@ -32,6 +32,7 @@ export interface PendingSync {
   workoutsToUpdate: { id: string; sets: WorkoutSet[] }[];
   workoutsToDelete: string[];
   cardioToAdd: Omit<CardioEntry, "id">[];
+  cardioToUpdate: { id: string; [key: string]: any }[];
   cardioToDelete: string[];
   customExercisesToAdd: { name: string; type: "workout" | "cardio"; category: string }[];
 }
@@ -42,6 +43,7 @@ function getEmptyPending(): PendingSync {
     workoutsToUpdate: [],
     workoutsToDelete: [],
     cardioToAdd: [],
+    cardioToUpdate: [],
     cardioToDelete: [],
     customExercisesToAdd: [],
   };
@@ -66,6 +68,7 @@ export function hasPendingChanges(): boolean {
     p.workoutsToUpdate.length > 0 ||
     p.workoutsToDelete.length > 0 ||
     p.cardioToAdd.length > 0 ||
+    p.cardioToUpdate.length > 0 ||
     p.cardioToDelete.length > 0 ||
     p.customExercisesToAdd.length > 0
   );
@@ -78,6 +81,7 @@ export function getPendingCount(): number {
     p.workoutsToUpdate.length +
     p.workoutsToDelete.length +
     p.cardioToAdd.length +
+    p.cardioToUpdate.length +
     p.cardioToDelete.length +
     p.customExercisesToAdd.length
   );
@@ -157,6 +161,27 @@ export function saveLocalCardio(entry: Omit<CardioEntry, "id">) {
   const p = getPending();
   p.cardioToAdd.push(entry);
   savePending(p);
+}
+
+export function updateLocalCardio(id: string, updates: Partial<Omit<CardioEntry, "id">>) {
+  const all = getLocal<CardioEntry>(KEYS.cardio);
+  const idx = all.findIndex((e) => e.id === id);
+  if (idx >= 0) {
+    all[idx] = { ...all[idx], ...updates };
+    setLocal(KEYS.cardio, all);
+  }
+
+  const p = getPending();
+  if (!id.startsWith("local_")) {
+    if (!p.cardioToUpdate) p.cardioToUpdate = [];
+    const existing = p.cardioToUpdate.findIndex((u) => u.id === id);
+    if (existing >= 0) {
+      p.cardioToUpdate[existing] = { ...p.cardioToUpdate[existing], ...updates };
+    } else {
+      p.cardioToUpdate.push({ id, ...updates });
+    }
+    savePending(p);
+  }
 }
 
 export function deleteLocalCardio(id: string) {
