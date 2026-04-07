@@ -302,6 +302,18 @@ export async function syncToCloud(userId: string): Promise<{ success: boolean; s
     else synced++;
   }
 
+  for (const u of (p.cardioToUpdate || [])) {
+    const { id, ...updates } = u;
+    const mapped: Record<string, any> = {};
+    if (updates.name !== undefined) mapped.name = updates.name;
+    if (updates.duration !== undefined) mapped.duration = updates.duration;
+    if (updates.distance !== undefined) mapped.distance = updates.distance;
+    if (updates.calories !== undefined) mapped.calories = updates.calories;
+    const { error } = await supabase.from("cardio_entries").update(mapped).eq("id", id);
+    if (error) errors.push(error.message);
+    else synced++;
+  }
+
   for (const ce of p.customExercisesToAdd) {
     const { error } = await supabase
       .from("custom_exercises")
