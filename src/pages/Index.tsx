@@ -305,6 +305,8 @@ export default function Index() {
         </div>
       )}
 
+      {tab === "nutrition" && <NutritionTab />}
+
       {tab === "weekly" && (
         <>
           <MuscleAnalysis workouts={workouts} />
@@ -312,8 +314,8 @@ export default function Index() {
         </>
       )}
 
-      {/* FAB - hide on weekly tab */}
-      {tab !== "weekly" && (
+      {/* FAB - only on weights/cardio */}
+      {(tab === "weights" || tab === "cardio") && (
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => tab === "weights" ? setSheetOpen(true) : setCardioSheetOpen(true)}
