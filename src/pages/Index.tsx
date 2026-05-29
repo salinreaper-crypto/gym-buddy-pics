@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
-import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud } from "lucide-react";
+import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud, Utensils } from "lucide-react";
+import NutritionTab from "@/components/NutritionTab";
 import { type Workout } from "@/lib/workoutStore";
 import { type CardioEntry } from "@/lib/cardioStore";
 import {
@@ -37,7 +38,7 @@ function getPersonalRecords(workouts: Workout[]) {
   return Array.from(prMap.entries()).map(([name, pr]) => ({ name, ...pr }));
 }
 
-type Tab = "weights" | "cardio" | "weekly";
+type Tab = "weights" | "cardio" | "nutrition" | "weekly";
 
 export default function Index() {
   const { user, signOut, loading } = useAuth();
@@ -168,6 +169,14 @@ export default function Index() {
             <HeartPulse className="w-4 h-4" /> Cardio
           </button>
           <button
+            onClick={() => setTab("nutrition")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
+              tab === "nutrition" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            <Utensils className="w-4 h-4" /> Food
+          </button>
+          <button
             onClick={() => setTab("weekly")}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
               tab === "weekly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
@@ -296,6 +305,8 @@ export default function Index() {
         </div>
       )}
 
+      {tab === "nutrition" && <NutritionTab />}
+
       {tab === "weekly" && (
         <>
           <MuscleAnalysis workouts={workouts} />
@@ -303,8 +314,8 @@ export default function Index() {
         </>
       )}
 
-      {/* FAB - hide on weekly tab */}
-      {tab !== "weekly" && (
+      {/* FAB - only on weights/cardio */}
+      {(tab === "weights" || tab === "cardio") && (
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => tab === "weights" ? setSheetOpen(true) : setCardioSheetOpen(true)}

@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      calories_burnt_entries: {
+        Row: {
+          calories: number
+          created_at: string
+          entry_date: string
+          id: string
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories: number
+          created_at?: string
+          entry_date?: string
+          id?: string
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number
+          created_at?: string
+          entry_date?: string
+          id?: string
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cardio_entries: {
         Row: {
           calories: number | null
@@ -73,6 +103,36 @@ export type Database = {
           id?: string
           name?: string
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nutrition_entries: {
+        Row: {
+          calories: number
+          consumed_at: string
+          created_at: string
+          food: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories: number
+          consumed_at?: string
+          created_at?: string
+          food: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number
+          consumed_at?: string
+          created_at?: string
+          food?: string
+          id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
