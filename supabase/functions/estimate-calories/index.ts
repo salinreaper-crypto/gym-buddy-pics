@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
           {
             role: "system",
             content:
-              "You estimate calories. Given a food description (may include quantity), reply with ONLY a JSON object: {\"calories\": <integer>, \"note\": \"<short reasoning, <=80 chars>\"}. No markdown, no extra text.",
+              "You estimate calories and protein. Given a food description (may include quantity), reply with ONLY a JSON object: {\"calories\": <integer kcal>, \"protein\": <integer grams>, \"note\": \"<short reasoning, <=80 chars>\"}. No markdown, no extra text.",
           },
           { role: "user", content: food },
         ],
@@ -58,13 +58,18 @@ Deno.serve(async (req) => {
 
     const data = await response.json();
     const content: string = data.choices?.[0]?.message?.content ?? "";
-    let parsed: { calories: number; note?: string } = { calories: 0 };
+    let parsed: { calories: number; protein: number; note?: string } = { calories: 0, protein: 0 };
     try {
       const cleaned = content.replace(/```json|```/g, "").trim();
-      parsed = JSON.parse(cleaned);
+      const obj = JSON.parse(cleaned);
+      parsed = {
+        calories: Number(obj.calories) || 0,
+        protein: Number(obj.protein) || 0,
+        note: obj.note,
+      };
     } catch {
       const m = content.match(/\d+/);
-      parsed = { calories: m ? parseInt(m[0], 10) : 0, note: content.slice(0, 80) };
+      parsed = { calories: m ? parseInt(m[0], 10) : 0, protein: 0, note: content.slice(0, 80) };
     }
 
     return new Response(JSON.stringify(parsed), {

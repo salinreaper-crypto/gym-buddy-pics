@@ -4,6 +4,7 @@ export interface NutritionEntry {
   id: string;
   food: string;
   calories: number;
+  protein: number;
   consumed_at: string; // ISO
 }
 
@@ -38,7 +39,7 @@ export function getCachedBurnt(): BurntEntry[] {
 export async function pullNutrition(): Promise<NutritionEntry[]> {
   const { data, error } = await supabase
     .from("nutrition_entries")
-    .select("id, food, calories, consumed_at")
+    .select("id, food, calories, protein, consumed_at")
     .order("consumed_at", { ascending: false });
   if (error || !data) return getCachedNutrition();
   setCached(NUTRITION_KEY, data);
@@ -55,10 +56,16 @@ export async function pullBurnt(): Promise<BurntEntry[]> {
   return data as BurntEntry[];
 }
 
-export async function addNutrition(userId: string, food: string, calories: number, consumed_at: string) {
+export async function addNutrition(
+  userId: string,
+  food: string,
+  calories: number,
+  consumed_at: string,
+  protein: number = 0,
+) {
   const { data, error } = await supabase
     .from("nutrition_entries")
-    .insert({ user_id: userId, food, calories, consumed_at })
+    .insert({ user_id: userId, food, calories, protein, consumed_at })
     .select()
     .single();
   if (error) throw error;
@@ -87,10 +94,12 @@ export async function upsertBurnt(userId: string, entry_date: string, calories: 
   return data as BurntEntry;
 }
 
-export async function estimateCalories(food: string): Promise<{ calories: number; note?: string }> {
+export async function estimateCalories(
+  food: string,
+): Promise<{ calories: number; protein: number; note?: string }> {
   const { data, error } = await supabase.functions.invoke("estimate-calories", {
     body: { food },
   });
   if (error) throw error;
-  return data as { calories: number; note?: string };
+  return data as { calories: number; protein: number; note?: string };
 }

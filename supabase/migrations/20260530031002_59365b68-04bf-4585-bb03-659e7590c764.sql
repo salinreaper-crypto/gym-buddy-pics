@@ -1,0 +1,1 @@
+ALTER TABLE public.nutrition_entries ADD COLUMN protein integer NOT NULL DEFAULT 0;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Trash2, Utensils, Flame, TrendingDown, TrendingUp } from "lucide-react";
+import { Sparkles, Trash2, Utensils, Flame, TrendingDown, TrendingUp, Beef } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
@@ -47,6 +47,7 @@ export default function NutritionTab() {
 
   const [food, setFood] = useState("");
   const [calories, setCalories] = useState("");
+  const [protein, setProtein] = useState("");
   const [time, setTime] = useState(nowLocalTime());
   const [date, setDate] = useState(todayLocalDate());
   const [estimating, setEstimating] = useState(false);
@@ -72,10 +73,12 @@ export default function NutritionTab() {
     }
     setEstimating(true);
     try {
-      const { calories: kcal, note } = await estimateCalories(food.trim());
+      const { calories: kcal, protein: prot, note } = await estimateCalories(food.trim());
       setCalories(String(kcal));
-      if (note) toast({ title: `Estimated ${kcal} kcal`, description: note });
-      else toast({ title: `Estimated ${kcal} kcal` });
+      setProtein(String(prot));
+      const summary = `${kcal} kcal · ${prot}g protein`;
+      if (note) toast({ title: `Estimated ${summary}`, description: note });
+      else toast({ title: `Estimated ${summary}` });
     } catch (e: any) {
       toast({ title: "Estimation failed", description: e?.message ?? "", variant: "destructive" });
     } finally {
@@ -86,6 +89,7 @@ export default function NutritionTab() {
   const handleAdd = async () => {
     if (!user) return;
     const kcal = parseInt(calories, 10);
+    const prot = parseInt(protein, 10);
     if (!food.trim() || !Number.isFinite(kcal) || kcal < 0) {
       toast({ title: "Food and calories required", variant: "destructive" });
       return;
@@ -95,9 +99,15 @@ export default function NutritionTab() {
       const [h, m] = time.split(":").map(Number);
       const [y, mo, d] = date.split("-").map(Number);
       const consumed_at = new Date(y, mo - 1, d, h || 0, m || 0).toISOString();
-      const entry = await addNutrition(user.id, food.trim(), kcal, consumed_at);
+      const entry = await addNutrition(
+        user.id,
+        food.trim(),
+        kcal,
+        consumed_at,
+        Number.isFinite(prot) && prot >= 0 ? prot : 0,
+      );
       setNutrition((prev) => [entry, ...prev]);
-      setFood(""); setCalories(""); setTime(nowLocalTime());
+      setFood(""); setCalories(""); setProtein(""); setTime(nowLocalTime());
       toast({ title: "Logged 🍽️" });
     } catch (e: any) {
       toast({ title: "Save failed", description: e?.message ?? "", variant: "destructive" });
@@ -151,18 +161,25 @@ export default function NutritionTab() {
     return m;
   }, [burnt]);
 
-  const todayConsumed = grouped.find(([k]) => k === today)?.[1].reduce((s, n) => s + n.calories, 0) ?? 0;
+  const todayEntries = grouped.find(([k]) => k === today)?.[1] ?? [];
+  const todayConsumed = todayEntries.reduce((s, n) => s + n.calories, 0);
+  const todayProtein = todayEntries.reduce((s, n) => s + (n.protein ?? 0), 0);
   const todayBurntVal = burntByDate.get(today) ?? 0;
   const todayNet = todayConsumed - todayBurntVal;
 
   return (
     <div className="px-4 space-y-4">
       {/* Today summary */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <div className="glass-card rounded-lg p-3 text-center">
           <Utensils className="w-4 h-4 text-primary mx-auto mb-1" />
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Consumed</p>
           <p className="text-lg font-display font-bold">{todayConsumed}</p>
+        </div>
+        <div className="glass-card rounded-lg p-3 text-center">
+          <Beef className="w-4 h-4 text-primary mx-auto mb-1" />
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Protein</p>
+          <p className="text-lg font-display font-bold">{todayProtein}<span className="text-xs font-normal text-muted-foreground">g</span></p>
         </div>
         <div className="glass-card rounded-lg p-3 text-center">
           <Flame className="w-4 h-4 text-primary mx-auto mb-1" />
@@ -197,6 +214,14 @@ export default function NutritionTab() {
             placeholder="Calories"
             value={calories}
             onChange={(e) => setCalories(e.target.value)}
+            className="flex-1"
+          />
+          <Input
+            type="number"
+            inputMode="numeric"
+            placeholder="Protein (g)"
+            value={protein}
+            onChange={(e) => setProtein(e.target.value)}
             className="flex-1"
           />
           <Button type="button" variant="secondary" onClick={handleEstimate} disabled={estimating}>
@@ -247,6 +272,7 @@ export default function NutritionTab() {
         ) : (
           grouped.map(([key, entries]) => {
             const consumed = entries.reduce((s, n) => s + n.calories, 0);
+            const proteinTotal = entries.reduce((s, n) => s + (n.protein ?? 0), 0);
             const burntK = burntByDate.get(key) ?? 0;
             const net = consumed - burntK;
             return (
@@ -255,6 +281,8 @@ export default function NutritionTab() {
                   <span className="text-sm font-display font-semibold text-muted-foreground">{prettyDate(key)}</span>
                   <span className="text-xs text-muted-foreground">
                     <span className="text-foreground font-semibold">{consumed}</span> in
+                    {" / "}
+                    <span className="text-foreground font-semibold">{proteinTotal}g</span> protein
                     {" / "}
                     <span className="text-foreground font-semibold">{burntK}</span> out
                     {" / "}
@@ -273,7 +301,10 @@ export default function NutritionTab() {
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{n.food}</p>
-                      <p className="text-xs text-muted-foreground">{prettyTime(n.consumed_at)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {prettyTime(n.consumed_at)}
+                        {n.protein > 0 ? ` · ${n.protein}g protein` : ""}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-base font-display font-bold text-primary">{n.calories}</p>
