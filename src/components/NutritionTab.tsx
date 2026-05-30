@@ -73,10 +73,12 @@ export default function NutritionTab() {
     }
     setEstimating(true);
     try {
-      const { calories: kcal, note } = await estimateCalories(food.trim());
+      const { calories: kcal, protein: prot, note } = await estimateCalories(food.trim());
       setCalories(String(kcal));
-      if (note) toast({ title: `Estimated ${kcal} kcal`, description: note });
-      else toast({ title: `Estimated ${kcal} kcal` });
+      setProtein(String(prot));
+      const summary = `${kcal} kcal · ${prot}g protein`;
+      if (note) toast({ title: `Estimated ${summary}`, description: note });
+      else toast({ title: `Estimated ${summary}` });
     } catch (e: any) {
       toast({ title: "Estimation failed", description: e?.message ?? "", variant: "destructive" });
     } finally {
@@ -87,6 +89,7 @@ export default function NutritionTab() {
   const handleAdd = async () => {
     if (!user) return;
     const kcal = parseInt(calories, 10);
+    const prot = parseInt(protein, 10);
     if (!food.trim() || !Number.isFinite(kcal) || kcal < 0) {
       toast({ title: "Food and calories required", variant: "destructive" });
       return;
@@ -96,9 +99,15 @@ export default function NutritionTab() {
       const [h, m] = time.split(":").map(Number);
       const [y, mo, d] = date.split("-").map(Number);
       const consumed_at = new Date(y, mo - 1, d, h || 0, m || 0).toISOString();
-      const entry = await addNutrition(user.id, food.trim(), kcal, consumed_at);
+      const entry = await addNutrition(
+        user.id,
+        food.trim(),
+        kcal,
+        consumed_at,
+        Number.isFinite(prot) && prot >= 0 ? prot : 0,
+      );
       setNutrition((prev) => [entry, ...prev]);
-      setFood(""); setCalories(""); setTime(nowLocalTime());
+      setFood(""); setCalories(""); setProtein(""); setTime(nowLocalTime());
       toast({ title: "Logged 🍽️" });
     } catch (e: any) {
       toast({ title: "Save failed", description: e?.message ?? "", variant: "destructive" });
