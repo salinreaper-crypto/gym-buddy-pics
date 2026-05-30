@@ -114,6 +114,7 @@ export type Database = {
           created_at: string
           food: string
           id: string
+          protein: number
           updated_at: string
           user_id: string
         }
@@ -123,6 +124,7 @@ export type Database = {
           created_at?: string
           food: string
           id?: string
+          protein?: number
           updated_at?: string
           user_id: string
         }
@@ -132,6 +134,7 @@ export type Database = {
           created_at?: string
           food?: string
           id?: string
+          protein?: number
           updated_at?: string
           user_id?: string
         }
