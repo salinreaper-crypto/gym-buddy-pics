@@ -301,7 +301,10 @@ export default function NutritionTab() {
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{n.food}</p>
-                      <p className="text-xs text-muted-foreground">{prettyTime(n.consumed_at)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {prettyTime(n.consumed_at)}
+                        {n.protein > 0 ? ` · ${n.protein}g protein` : ""}
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-base font-display font-bold text-primary">{n.calories}</p>
