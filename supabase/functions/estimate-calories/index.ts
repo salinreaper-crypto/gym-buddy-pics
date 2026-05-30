@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
           {
             role: "system",
             content:
-              "You estimate calories. Given a food description (may include quantity), reply with ONLY a JSON object: {\"calories\": <integer>, \"note\": \"<short reasoning, <=80 chars>\"}. No markdown, no extra text.",
+              "You estimate calories and protein. Given a food description (may include quantity), reply with ONLY a JSON object: {\"calories\": <integer kcal>, \"protein\": <integer grams>, \"note\": \"<short reasoning, <=80 chars>\"}. No markdown, no extra text.",
           },
           { role: "user", content: food },
         ],
