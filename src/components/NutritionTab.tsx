@@ -216,6 +216,14 @@ export default function NutritionTab() {
             onChange={(e) => setCalories(e.target.value)}
             className="flex-1"
           />
+          <Input
+            type="number"
+            inputMode="numeric"
+            placeholder="Protein (g)"
+            value={protein}
+            onChange={(e) => setProtein(e.target.value)}
+            className="flex-1"
+          />
           <Button type="button" variant="secondary" onClick={handleEstimate} disabled={estimating}>
             <Sparkles className="w-4 h-4 mr-1" />
             {estimating ? "..." : "Estimate"}
