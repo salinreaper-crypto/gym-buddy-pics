@@ -272,6 +272,7 @@ export default function NutritionTab() {
         ) : (
           grouped.map(([key, entries]) => {
             const consumed = entries.reduce((s, n) => s + n.calories, 0);
+            const proteinTotal = entries.reduce((s, n) => s + (n.protein ?? 0), 0);
             const burntK = burntByDate.get(key) ?? 0;
             const net = consumed - burntK;
             return (
@@ -280,6 +281,8 @@ export default function NutritionTab() {
                   <span className="text-sm font-display font-semibold text-muted-foreground">{prettyDate(key)}</span>
                   <span className="text-xs text-muted-foreground">
                     <span className="text-foreground font-semibold">{consumed}</span> in
+                    {" / "}
+                    <span className="text-foreground font-semibold">{proteinTotal}g</span> protein
                     {" / "}
                     <span className="text-foreground font-semibold">{burntK}</span> out
                     {" / "}
