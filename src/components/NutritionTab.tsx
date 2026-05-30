@@ -161,18 +161,25 @@ export default function NutritionTab() {
     return m;
   }, [burnt]);
 
-  const todayConsumed = grouped.find(([k]) => k === today)?.[1].reduce((s, n) => s + n.calories, 0) ?? 0;
+  const todayEntries = grouped.find(([k]) => k === today)?.[1] ?? [];
+  const todayConsumed = todayEntries.reduce((s, n) => s + n.calories, 0);
+  const todayProtein = todayEntries.reduce((s, n) => s + (n.protein ?? 0), 0);
   const todayBurntVal = burntByDate.get(today) ?? 0;
   const todayNet = todayConsumed - todayBurntVal;
 
   return (
     <div className="px-4 space-y-4">
       {/* Today summary */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <div className="glass-card rounded-lg p-3 text-center">
           <Utensils className="w-4 h-4 text-primary mx-auto mb-1" />
           <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Consumed</p>
           <p className="text-lg font-display font-bold">{todayConsumed}</p>
+        </div>
+        <div className="glass-card rounded-lg p-3 text-center">
+          <Beef className="w-4 h-4 text-primary mx-auto mb-1" />
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Protein</p>
+          <p className="text-lg font-display font-bold">{todayProtein}<span className="text-xs font-normal text-muted-foreground">g</span></p>
         </div>
         <div className="glass-card rounded-lg p-3 text-center">
           <Flame className="w-4 h-4 text-primary mx-auto mb-1" />
