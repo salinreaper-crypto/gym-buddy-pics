@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Trash2, Utensils, Flame, TrendingDown, TrendingUp } from "lucide-react";
+import { Sparkles, Trash2, Utensils, Flame, TrendingDown, TrendingUp, Beef } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
