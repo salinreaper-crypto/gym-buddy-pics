@@ -47,6 +47,7 @@ export default function NutritionTab() {
 
   const [food, setFood] = useState("");
   const [calories, setCalories] = useState("");
+  const [protein, setProtein] = useState("");
   const [time, setTime] = useState(nowLocalTime());
   const [date, setDate] = useState(todayLocalDate());
   const [estimating, setEstimating] = useState(false);
