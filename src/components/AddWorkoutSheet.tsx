@@ -40,9 +40,10 @@ interface AddWorkoutSheetProps {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
+  workouts?: Workout[];
 }
 
-export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSheetProps) {
+export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] }: AddWorkoutSheetProps) {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [sets, setSets] = useState<WorkoutSet[]>([{ reps: 10, weight: 0 }]);
