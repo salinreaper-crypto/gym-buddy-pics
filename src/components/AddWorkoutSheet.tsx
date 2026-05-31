@@ -1,13 +1,14 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Camera, Trash2, ChevronDown, Search, Loader2 } from "lucide-react";
+import { X, Plus, Camera, Trash2, ChevronDown, Search, Loader2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { type WorkoutSet } from "@/lib/workoutStore";
+import { type WorkoutSet, type Workout } from "@/lib/workoutStore";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { saveLocalWorkout, saveLocalCustomExercise, getLocalCustomExercises } from "@/lib/localStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { getPRForExercise } from "@/lib/personalRecords";
 import {
   EXERCISES,
   CATEGORY_LABELS,
@@ -39,9 +40,10 @@ interface AddWorkoutSheetProps {
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
+  workouts?: Workout[];
 }
 
-export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSheetProps) {
+export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] }: AddWorkoutSheetProps) {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [sets, setSets] = useState<WorkoutSet[]>([{ reps: 10, weight: 0 }]);
@@ -51,6 +53,8 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
   const fileRef = useRef<HTMLInputElement>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
   const [searchingPhoto, setSearchingPhoto] = useState(false);
+
+  const pr = useMemo(() => getPRForExercise(workouts, name), [workouts, name]);
 
   const handleSearchPhoto = async () => {
     if (!name.trim()) {
@@ -299,6 +303,29 @@ export default function AddWorkoutSheet({ open, onClose, onSaved }: AddWorkoutSh
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Personal Record for selected exercise */}
+            {pr && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Trophy className="w-4 h-4 text-primary flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-primary font-display font-semibold">Personal Record</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {pr.reps} reps · {new Date(pr.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-1 flex-shrink-0">
+                  <span className="text-2xl font-display font-bold text-primary leading-none">{pr.weight}</span>
+                  <span className="text-xs text-muted-foreground">kg</span>
+                </div>
+              </motion.div>
+            )}
 
             {/* Sets */}
             <div className="space-y-3 mb-6">
