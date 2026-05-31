@@ -180,22 +180,33 @@ export default function Index() {
         <>
           {prs.length > 0 && (
             <div className="px-4 pb-6">
-              <div className="flex items-center gap-2 px-2 mb-3">
-                <Trophy className="w-4 h-4 text-primary" />
-                <span className="text-sm font-display font-semibold text-primary tracking-wide uppercase">Personal Records</span>
+              <div className="flex items-center justify-between px-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-display font-semibold text-primary tracking-wide uppercase">
+                    Personal Records
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">{prs.length} lift{prs.length > 1 ? "s" : ""}</span>
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {prs.map((pr, i) => (
                   <motion.div
                     key={pr.name}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="glass-card rounded-lg p-4 min-w-[140px] flex-shrink-0"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="glass-card rounded-lg p-3 border border-border/50"
                   >
-                    <p className="text-xs text-muted-foreground truncate mb-1">{pr.name}</p>
-                    <p className="text-xl font-display font-bold text-primary">{pr.weight}<span className="text-sm text-muted-foreground ml-1">kg</span></p>
-                    <p className="text-xs text-muted-foreground mt-1">{pr.reps} reps</p>
+                    <p className="text-xs text-muted-foreground truncate mb-1" title={pr.name}>{pr.name}</p>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-2xl font-display font-bold text-primary leading-none">{pr.weight}</p>
+                      <span className="text-xs text-muted-foreground">kg</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 text-[11px] text-muted-foreground">
+                      <span>{pr.reps} reps</span>
+                      <span>{new Date(pr.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                    </div>
                   </motion.div>
                 ))}
               </div>
