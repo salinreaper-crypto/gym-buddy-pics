@@ -41,6 +41,7 @@ export default function Index() {
   const [editingCardio, setEditingCardio] = useState<CardioEntry | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [prDetail, setPrDetail] = useState<string | null>(null);
 
   const refreshLocal = useCallback(() => {
     setWorkouts(getLocalWorkouts());
