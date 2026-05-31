@@ -25,18 +25,7 @@ import MuscleAnalysis from "@/components/MuscleAnalysis";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
-function getPersonalRecords(workouts: Workout[]) {
-  const prMap = new Map<string, { weight: number; reps: number; date: string }>();
-  for (const w of workouts) {
-    for (const s of w.sets) {
-      const existing = prMap.get(w.name);
-      if (!existing || s.weight > existing.weight) {
-        prMap.set(w.name, { weight: s.weight, reps: s.reps, date: w.date });
-      }
-    }
-  }
-  return Array.from(prMap.entries()).map(([name, pr]) => ({ name, ...pr }));
-}
+import { getPersonalRecords } from "@/lib/personalRecords";
 
 type Tab = "weights" | "cardio" | "nutrition" | "weekly";
 
