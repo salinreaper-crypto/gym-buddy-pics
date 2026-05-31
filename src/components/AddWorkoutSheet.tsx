@@ -54,6 +54,8 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
   const [searchingPhoto, setSearchingPhoto] = useState(false);
 
+  const pr = useMemo(() => getPRForExercise(workouts, name), [workouts, name]);
+
   const handleSearchPhoto = async () => {
     if (!name.trim()) {
       toast({ title: "Select an exercise first", variant: "destructive" });
