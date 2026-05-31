@@ -22,6 +22,7 @@ import AddCardioSheet from "@/components/AddCardioSheet";
 import CardioCard from "@/components/CardioCard";
 import WeeklySummary from "@/components/WeeklySummary";
 import MuscleAnalysis from "@/components/MuscleAnalysis";
+import PrProgressDialog from "@/components/PrProgressDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -40,6 +41,7 @@ export default function Index() {
   const [editingCardio, setEditingCardio] = useState<CardioEntry | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [prDetail, setPrDetail] = useState<string | null>(null);
 
   const refreshLocal = useCallback(() => {
     setWorkouts(getLocalWorkouts());
@@ -191,12 +193,13 @@ export default function Index() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {prs.map((pr, i) => (
-                  <motion.div
+                  <motion.button
                     key={pr.name}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04 }}
-                    className="glass-card rounded-lg p-3 border border-border/50"
+                    onClick={() => setPrDetail(pr.name)}
+                    className="glass-card rounded-lg p-3 border border-border/50 text-left hover:border-primary/40 hover:bg-primary/5 transition-colors active:scale-[0.98]"
                   >
                     <p className="text-xs text-muted-foreground truncate mb-1" title={pr.name}>{pr.name}</p>
                     <div className="flex items-baseline gap-1">
@@ -207,7 +210,7 @@ export default function Index() {
                       <span>{pr.reps} reps</span>
                       <span>{new Date(pr.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                     </div>
-                  </motion.div>
+                  </motion.button>
                 ))}
               </div>
             </div>
@@ -330,6 +333,7 @@ export default function Index() {
       {selected && (
         <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshLocal} onUpdated={refreshLocal} />
       )}
+      <PrProgressDialog exerciseName={prDetail} workouts={workouts} onClose={() => setPrDetail(null)} />
     </div>
   );
 }

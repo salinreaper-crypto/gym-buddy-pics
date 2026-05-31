@@ -127,7 +127,9 @@ export default function WorkoutDetail({ workout, onBack, onDeleted, onUpdated }:
 
         {/* Photo */}
         {workout.photo ? (
-          <img src={workout.photo} alt={workout.name} className="w-full h-56 object-cover" />
+          <div className="w-full h-56 bg-secondary flex items-center justify-center overflow-hidden">
+            <img src={workout.photo} alt={workout.name} className="w-full h-full object-contain" />
+          </div>
         ) : (
           <div className="w-full h-56 bg-secondary flex items-center justify-center">
             <Dumbbell className="w-16 h-16 text-primary/30" />
