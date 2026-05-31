@@ -333,6 +333,7 @@ export default function Index() {
       {selected && (
         <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshLocal} onUpdated={refreshLocal} />
       )}
+      <PrProgressDialog exerciseName={prDetail} workouts={workouts} onClose={() => setPrDetail(null)} />
     </div>
   );
 }
