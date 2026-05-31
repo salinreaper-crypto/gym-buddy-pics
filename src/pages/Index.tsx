@@ -22,6 +22,7 @@ import AddCardioSheet from "@/components/AddCardioSheet";
 import CardioCard from "@/components/CardioCard";
 import WeeklySummary from "@/components/WeeklySummary";
 import MuscleAnalysis from "@/components/MuscleAnalysis";
+import PrProgressDialog from "@/components/PrProgressDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
