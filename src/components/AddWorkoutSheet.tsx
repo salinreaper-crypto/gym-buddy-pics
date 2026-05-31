@@ -304,6 +304,29 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
               </AnimatePresence>
             </div>
 
+            {/* Personal Record for selected exercise */}
+            {pr && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Trophy className="w-4 h-4 text-primary flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-primary font-display font-semibold">Personal Record</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {pr.reps} reps · {new Date(pr.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-baseline gap-1 flex-shrink-0">
+                  <span className="text-2xl font-display font-bold text-primary leading-none">{pr.weight}</span>
+                  <span className="text-xs text-muted-foreground">kg</span>
+                </div>
+              </motion.div>
+            )}
+
             {/* Sets */}
             <div className="space-y-3 mb-6">
               <div className="grid grid-cols-[1fr_1fr_40px] gap-3 text-xs text-muted-foreground font-medium px-1">
