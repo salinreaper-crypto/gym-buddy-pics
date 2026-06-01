@@ -183,37 +183,45 @@ export default function Index() {
         <>
           {prs.length > 0 && (
             <div className="px-4 pb-6">
-              <div className="flex items-center justify-between px-2 mb-3">
+              <button
+                onClick={() => setPrsCollapsed((v) => !v)}
+                className="w-full flex items-center justify-between px-2 mb-3 group"
+              >
                 <div className="flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-primary" />
                   <span className="text-sm font-display font-semibold text-primary tracking-wide uppercase">
                     Personal Records
                   </span>
                 </div>
-                <span className="text-xs text-muted-foreground">{prs.length} lift{prs.length > 1 ? "s" : ""}</span>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {prs.map((pr, i) => (
-                  <motion.button
-                    key={pr.name}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    onClick={() => setPrDetail(pr.name)}
-                    className="glass-card rounded-lg p-3 border border-border/50 text-left hover:border-primary/40 hover:bg-primary/5 transition-colors active:scale-[0.98]"
-                  >
-                    <p className="text-xs text-muted-foreground truncate mb-1" title={pr.name}>{pr.name}</p>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-2xl font-display font-bold text-primary leading-none">{pr.weight}</p>
-                      <span className="text-xs text-muted-foreground">kg</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2 text-[11px] text-muted-foreground">
-                      <span>{pr.reps} reps</span>
-                      <span>{new Date(pr.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{prs.length} lift{prs.length > 1 ? "s" : ""}</span>
+                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${prsCollapsed ? "" : "rotate-180"}`} />
+                </div>
+              </button>
+              {!prsCollapsed && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {prs.map((pr, i) => (
+                    <motion.button
+                      key={pr.name}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      onClick={() => setPrDetail(pr.name)}
+                      className="glass-card rounded-lg p-3 border border-border/50 text-left hover:border-primary/40 hover:bg-primary/5 transition-colors active:scale-[0.98]"
+                    >
+                      <p className="text-xs text-muted-foreground truncate mb-1" title={pr.name}>{pr.name}</p>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-2xl font-display font-bold text-primary leading-none">{pr.weight}</p>
+                        <span className="text-xs text-muted-foreground">kg</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-2 text-[11px] text-muted-foreground">
+                        <span>{pr.reps} reps</span>
+                        <span>{new Date(pr.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
