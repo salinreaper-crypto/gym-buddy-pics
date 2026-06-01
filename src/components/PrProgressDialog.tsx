@@ -133,8 +133,8 @@ export default function PrProgressDialog({ exerciseName, workouts, onClose }: Pr
                 </div>
 
                 <div className="mt-5">
-                  <p className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-1">History</p>
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                  <p className="text-xs font-display font-semibold uppercase tracking-wider text-muted-foreground mb-2 text-center">History</p>
+                  <div className="space-y-1.5">
                     {[...data].reverse().map((p, i) => {
                       const isPr = p.topWeight === stats.pr.topWeight && p.ts === stats.pr.ts;
                       return (
