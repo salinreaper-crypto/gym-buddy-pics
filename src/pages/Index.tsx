@@ -42,6 +42,7 @@ export default function Index() {
   const [syncing, setSyncing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [prDetail, setPrDetail] = useState<string | null>(null);
+  const [prsCollapsed, setPrsCollapsed] = useState(false);
 
   const refreshLocal = useCallback(() => {
     setWorkouts(getLocalWorkouts());
