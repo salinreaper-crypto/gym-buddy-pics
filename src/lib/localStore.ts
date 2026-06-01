@@ -324,6 +324,11 @@ export async function syncToCloud(userId: string): Promise<{ success: boolean; s
 
   if (errors.length === 0) {
     savePending(getEmptyPending());
+    // Clear local-only items now that they exist in the cloud — pullFromCloud
+    // will re-populate from canonical cloud rows. Without this, local_ rows
+    // remain in localStorage and appear duplicated alongside their cloud copies.
+    setLocal(KEYS.workouts, getLocal<Workout>(KEYS.workouts).filter((w) => !w.id.startsWith("local_")));
+    setLocal(KEYS.cardio, getLocal<CardioEntry>(KEYS.cardio).filter((e) => !e.id.startsWith("local_")));
     await pullFromCloud();
     return { success: true, synced };
   }
