@@ -184,11 +184,11 @@ function StatCard({
   const Icon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : trend === "flat" ? Minus : null;
   const color = trend === "up" ? "text-primary" : trend === "down" ? "text-destructive" : "text-muted-foreground";
   return (
-    <div className="rounded-lg bg-secondary/60 border border-border/50 p-3">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-display font-semibold mb-1">{label}</p>
-      <div className={`flex items-center gap-1 ${trend ? color : "text-foreground"}`}>
-        {Icon && <Icon className="w-3.5 h-3.5" />}
-        <p className="text-lg font-display font-bold leading-tight">{value}</p>
+    <div className="rounded-lg bg-secondary/60 border border-border/50 p-2 sm:p-3 min-w-0">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-display font-semibold mb-1 truncate">{label}</p>
+      <div className={`flex items-center gap-1 min-w-0 ${trend ? color : "text-foreground"}`}>
+        {Icon && <Icon className="w-3.5 h-3.5 flex-shrink-0" />}
+        <p className="text-sm sm:text-lg font-display font-bold leading-tight truncate">{value}</p>
       </div>
       <p className="text-[10px] text-muted-foreground mt-1 truncate">{sub}</p>
     </div>
