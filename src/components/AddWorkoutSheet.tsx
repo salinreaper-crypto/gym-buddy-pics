@@ -180,8 +180,14 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
             <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhoto} />
             <div className="mb-6">
               {photo ? (
-                <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border bg-secondary/40">
+                <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border bg-secondary/40 group">
                   <img src={photo} alt="Machine" className="w-full h-full object-contain" />
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    className="absolute bottom-2 right-2 px-3 py-1.5 bg-background/80 backdrop-blur-sm rounded-full text-xs font-medium hover:bg-background flex items-center gap-1.5"
+                  >
+                    <Camera className="w-3.5 h-3.5" /> Edit Photo
+                  </button>
                   <button
                     onClick={() => setPhoto(undefined)}
                     className="absolute top-2 right-2 p-1 bg-background/80 rounded-full hover:bg-background"
