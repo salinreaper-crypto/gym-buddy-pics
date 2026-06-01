@@ -76,14 +76,14 @@ export default function PrProgressDialog({ exerciseName, workouts, onClose }: Pr
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 16 }}
             transition={{ type: "spring", damping: 26, stiffness: 320 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[92vw] max-w-xl max-h-[88vh] overflow-y-auto rounded-2xl bg-card border border-border p-6 shadow-2xl"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[94vw] max-w-xl max-h-[92vh] overflow-y-auto overscroll-contain rounded-2xl bg-card border border-border p-4 sm:p-6 shadow-2xl"
           >
-            <div className="flex items-start justify-between mb-5">
+            <div className="flex items-start justify-between mb-4 sm:mb-5">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-primary text-xs font-display font-semibold uppercase tracking-wider mb-1">
                   <Trophy className="w-3.5 h-3.5" /> Progress
                 </div>
-                <h2 className="font-display text-xl font-bold truncate">{exerciseName}</h2>
+                <h2 className="font-display text-lg sm:text-xl font-bold truncate">{exerciseName}</h2>
               </div>
               <button onClick={onClose} className="p-2 rounded-full hover:bg-secondary flex-shrink-0">
                 <X className="w-5 h-5" />
@@ -92,18 +92,18 @@ export default function PrProgressDialog({ exerciseName, workouts, onClose }: Pr
 
             {stats ? (
               <>
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                  <StatCard label="Personal Record" value={`${stats.pr.topWeight} kg`} sub={`${stats.pr.reps} reps · ${stats.pr.date}`} />
-                  <StatCard label="Latest" value={`${stats.last.topWeight} kg`} sub={`${stats.last.reps} reps · ${stats.last.date}`} />
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-5">
+                  <StatCard label="PR" value={`${stats.pr.topWeight}kg`} sub={`${stats.pr.reps} reps`} />
+                  <StatCard label="Latest" value={`${stats.last.topWeight}kg`} sub={`${stats.last.reps} reps`} />
                   <StatCard
                     label="Change"
-                    value={`${stats.delta >= 0 ? "+" : ""}${stats.delta} kg`}
+                    value={`${stats.delta >= 0 ? "+" : ""}${stats.delta}kg`}
                     sub={`${stats.sessions} session${stats.sessions > 1 ? "s" : ""}`}
                     trend={stats.delta > 0 ? "up" : stats.delta < 0 ? "down" : "flat"}
                   />
                 </div>
 
-                <div className="h-56 w-full">
+                <div className="h-44 sm:h-56 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={data} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
                       <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" vertical={false} />
@@ -184,11 +184,11 @@ function StatCard({
   const Icon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : trend === "flat" ? Minus : null;
   const color = trend === "up" ? "text-primary" : trend === "down" ? "text-destructive" : "text-muted-foreground";
   return (
-    <div className="rounded-lg bg-secondary/60 border border-border/50 p-3">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-display font-semibold mb-1">{label}</p>
-      <div className={`flex items-center gap-1 ${trend ? color : "text-foreground"}`}>
-        {Icon && <Icon className="w-3.5 h-3.5" />}
-        <p className="text-lg font-display font-bold leading-tight">{value}</p>
+    <div className="rounded-lg bg-secondary/60 border border-border/50 p-2 sm:p-3 min-w-0">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-display font-semibold mb-1 truncate">{label}</p>
+      <div className={`flex items-center gap-1 min-w-0 ${trend ? color : "text-foreground"}`}>
+        {Icon && <Icon className="w-3.5 h-3.5 flex-shrink-0" />}
+        <p className="text-sm sm:text-lg font-display font-bold leading-tight truncate">{value}</p>
       </div>
       <p className="text-[10px] text-muted-foreground mt-1 truncate">{sub}</p>
     </div>
