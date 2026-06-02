@@ -257,81 +257,78 @@ export async function pullFromCloud() {
 export async function syncToCloud(userId: string): Promise<{ success: boolean; synced: number }> {
   const p = getPending();
   let synced = 0;
-  const errors: string[] = [];
+  let failed = 0;
+  const persist = () => savePending(p);
 
-  for (const w of p.workoutsToAdd) {
+  // Each step removes itself from pending on success and persists immediately.
+  // This prevents a partial failure from replaying successful inserts on the
+  // next sync (the root cause of duplicated workouts in the cloud).
+
+  for (let i = p.workoutsToAdd.length - 1; i >= 0; i--) {
+    const w = p.workoutsToAdd[i];
     const { error } = await supabase.from("workouts").insert({
-      user_id: userId,
-      name: w.name,
-      sets: w.sets as any,
-      photo: w.photo,
-      workout_date: w.date,
+      user_id: userId, name: w.name, sets: w.sets as any, photo: w.photo, workout_date: w.date,
     });
-    if (error) errors.push(error.message);
-    else synced++;
+    if (!error) { p.workoutsToAdd.splice(i, 1); persist(); synced++; } else failed++;
   }
 
-  for (const u of p.workoutsToUpdate) {
+  for (let i = p.workoutsToUpdate.length - 1; i >= 0; i--) {
+    const u = p.workoutsToUpdate[i];
     const { error } = await supabase.from("workouts").update({ sets: u.sets as any }).eq("id", u.id);
-    if (error) errors.push(error.message);
-    else synced++;
+    if (!error) { p.workoutsToUpdate.splice(i, 1); persist(); synced++; } else failed++;
   }
 
-  for (const id of p.workoutsToDelete) {
+  for (let i = p.workoutsToDelete.length - 1; i >= 0; i--) {
+    const id = p.workoutsToDelete[i];
     const { error } = await supabase.from("workouts").delete().eq("id", id);
-    if (error) errors.push(error.message);
-    else synced++;
+    if (!error) { p.workoutsToDelete.splice(i, 1); persist(); synced++; } else failed++;
   }
 
-  for (const e of p.cardioToAdd) {
+  for (let i = p.cardioToAdd.length - 1; i >= 0; i--) {
+    const e = p.cardioToAdd[i];
     const { error } = await supabase.from("cardio_entries").insert({
-      user_id: userId,
-      name: e.name,
-      duration: e.duration,
-      distance: e.distance,
-      calories: e.calories,
-      entry_date: e.date,
+      user_id: userId, name: e.name, duration: e.duration, distance: e.distance, calories: e.calories, entry_date: e.date,
     });
-    if (error) errors.push(error.message);
-    else synced++;
+    if (!error) { p.cardioToAdd.splice(i, 1); persist(); synced++; } else failed++;
   }
 
-  for (const id of p.cardioToDelete) {
+  for (let i = p.cardioToDelete.length - 1; i >= 0; i--) {
+    const id = p.cardioToDelete[i];
     const { error } = await supabase.from("cardio_entries").delete().eq("id", id);
-    if (error) errors.push(error.message);
-    else synced++;
+    if (!error) { p.cardioToDelete.splice(i, 1); persist(); synced++; } else failed++;
   }
 
-  for (const u of (p.cardioToUpdate || [])) {
-    const { id, ...updates } = u;
+  const cardioUpdates = p.cardioToUpdate || [];
+  for (let i = cardioUpdates.length - 1; i >= 0; i--) {
+    const { id, ...updates } = cardioUpdates[i];
     const mapped: Record<string, any> = {};
     if (updates.name !== undefined) mapped.name = updates.name;
     if (updates.duration !== undefined) mapped.duration = updates.duration;
     if (updates.distance !== undefined) mapped.distance = updates.distance;
     if (updates.calories !== undefined) mapped.calories = updates.calories;
     const { error } = await supabase.from("cardio_entries").update(mapped).eq("id", id);
-    if (error) errors.push(error.message);
-    else synced++;
+    if (!error) { cardioUpdates.splice(i, 1); persist(); synced++; } else failed++;
   }
+  p.cardioToUpdate = cardioUpdates;
+  persist();
 
-  for (const ce of p.customExercisesToAdd) {
+  for (let i = p.customExercisesToAdd.length - 1; i >= 0; i--) {
+    const ce = p.customExercisesToAdd[i];
     const { error } = await supabase
       .from("custom_exercises")
       .upsert({ user_id: userId, name: ce.name, type: ce.type, category: ce.category }, { onConflict: "user_id,name,type" });
-    if (error) errors.push(error.message);
-    else synced++;
+    if (!error) { p.customExercisesToAdd.splice(i, 1); persist(); synced++; } else failed++;
   }
 
-  if (errors.length === 0) {
-    savePending(getEmptyPending());
-    // Clear local-only items now that they exist in the cloud — pullFromCloud
-    // will re-populate from canonical cloud rows. Without this, local_ rows
-    // remain in localStorage and appear duplicated alongside their cloud copies.
+  // Only strip local_ rows once all add-operations succeeded — otherwise we'd
+  // lose rows that still need to be pushed on a retry.
+  if (p.workoutsToAdd.length === 0) {
     setLocal(KEYS.workouts, getLocal<Workout>(KEYS.workouts).filter((w) => !w.id.startsWith("local_")));
+  }
+  if (p.cardioToAdd.length === 0) {
     setLocal(KEYS.cardio, getLocal<CardioEntry>(KEYS.cardio).filter((e) => !e.id.startsWith("local_")));
-    await pullFromCloud();
-    return { success: true, synced };
   }
 
-  return { success: false, synced };
+  await pullFromCloud();
+  return { success: failed === 0, synced };
 }
