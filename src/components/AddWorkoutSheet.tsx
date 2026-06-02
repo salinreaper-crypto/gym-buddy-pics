@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Plus, Camera, Trash2, ChevronDown, Search, Loader2, Trophy } from "lucide-react";
+import { X, Plus, Minus, Camera, Trash2, ChevronDown, Search, Loader2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type WorkoutSet, type Workout } from "@/lib/workoutStore";
@@ -109,7 +109,15 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
     setSets((prev) => prev.map((s, idx) => (idx === i ? { ...s, [field]: n } : s)));
   };
 
-  const addSet = () => setSets((prev) => [...prev, { reps: 10, weight: prev[prev.length - 1]?.weight ?? 0 }]);
+  const bumpSet = (i: number, field: keyof WorkoutSet, delta: number) => {
+    setSets((prev) =>
+      prev.map((s, idx) =>
+        idx === i ? { ...s, [field]: Math.max(0, (s[field] || 0) + delta) } : s,
+      ),
+    );
+  };
+
+  const addSet = () => setSets((prev) => [...prev, { reps: prev[prev.length - 1]?.reps ?? 10, weight: prev[prev.length - 1]?.weight ?? 0 }]);
   const removeSet = (i: number) => setSets((prev) => prev.filter((_, idx) => idx !== i));
 
   const selectExercise = (exerciseName: string) => {
@@ -117,6 +125,13 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
     setPickerOpen(false);
     const cached = getCachedPhoto(exerciseName);
     if (cached) setPhoto(cached);
+    // Prefill sets from the most recent session of this exercise so you can
+    // log mid-workout with minimal taps.
+    const key = exerciseName.trim().toLowerCase();
+    const last = workouts.find((w) => w.name.trim().toLowerCase() === key);
+    if (last?.sets?.length) {
+      setSets(last.sets.map((s) => ({ reps: s.reps, weight: s.weight })));
+    }
   };
 
   const toggleCategory = (cat: ExerciseCategory) => {
@@ -335,32 +350,70 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
 
             {/* Sets */}
             <div className="space-y-3 mb-6">
-              <div className="grid grid-cols-[1fr_1fr_40px] gap-3 text-xs text-muted-foreground font-medium px-1">
-                <span>REPS</span>
-                <span>WEIGHT (kg)</span>
+              <div className="grid grid-cols-[40px_1fr_1fr_36px] gap-2 sm:gap-3 text-[11px] text-muted-foreground font-medium px-1 uppercase tracking-wider">
+                <span>Set</span>
+                <span className="text-center">Reps</span>
+                <span className="text-center">Weight (kg)</span>
                 <span />
               </div>
               {sets.map((s, i) => (
-                <div key={i} className="grid grid-cols-[1fr_1fr_40px] gap-3 items-center">
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    value={s.reps || ""}
-                    onChange={(e) => updateSet(i, "reps", e.target.value)}
-                    className="bg-secondary border-none h-11 text-center text-base"
-                  />
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    value={s.weight || ""}
-                    onChange={(e) => updateSet(i, "weight", e.target.value)}
-                    className="bg-secondary border-none h-11 text-center text-base"
-                  />
-                  {sets.length > 1 && (
-                    <button onClick={() => removeSet(i)} className="p-2 text-muted-foreground hover:text-destructive">
+                <div key={i} className="grid grid-cols-[40px_1fr_1fr_36px] gap-2 sm:gap-3 items-center">
+                  <span className="text-sm font-display font-bold text-muted-foreground text-center">{i + 1}</span>
+                  <div className="flex items-center bg-secondary rounded-lg h-11 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => bumpSet(i, "reps", -1)}
+                      className="h-full px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted"
+                      aria-label="Decrease reps"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      value={s.reps || ""}
+                      onChange={(e) => updateSet(i, "reps", e.target.value)}
+                      className="bg-transparent border-none h-full text-center text-base p-0 focus-visible:ring-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => bumpSet(i, "reps", 1)}
+                      className="h-full px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted"
+                      aria-label="Increase reps"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-center bg-secondary rounded-lg h-11 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => bumpSet(i, "weight", -2.5)}
+                      className="h-full px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted"
+                      aria-label="Decrease weight"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      value={s.weight || ""}
+                      onChange={(e) => updateSet(i, "weight", e.target.value)}
+                      className="bg-transparent border-none h-full text-center text-base p-0 focus-visible:ring-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => bumpSet(i, "weight", 2.5)}
+                      className="h-full px-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 active:bg-muted"
+                      aria-label="Increase weight"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  {sets.length > 1 ? (
+                    <button onClick={() => removeSet(i)} className="p-2 text-muted-foreground hover:text-destructive flex justify-center">
                       <Trash2 className="w-4 h-4" />
                     </button>
-                  )}
+                  ) : <span />}
                 </div>
               ))}
               <button
