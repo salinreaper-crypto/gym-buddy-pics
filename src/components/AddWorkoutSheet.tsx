@@ -164,7 +164,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
     toast({ title: "Workout logged! 💪" });
   };
 
-  const categories: ExerciseCategory[] = ["push", "pull", "legs"];
+  const categories: ExerciseCategory[] = ["push", "pull", "legs", "core"];
 
   return (
     <AnimatePresence>
