@@ -284,7 +284,25 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
                     exit={{ opacity: 0, height: 0 }}
                     className="mt-2 rounded-lg bg-secondary border border-border overflow-hidden"
                   >
-                    <div className="max-h-60 overflow-y-auto">
+                    <div className="max-h-72 overflow-y-auto">
+                      {recent.length > 0 && (
+                        <div className="border-b border-border">
+                          <div className="px-4 py-2 font-display font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">
+                            Recent
+                          </div>
+                          {recent.map((exName) => (
+                            <button
+                              key={`recent-${exName}`}
+                              onClick={() => selectExercise(exName)}
+                              className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors ${
+                                name === exName ? "text-primary font-medium" : "text-foreground"
+                              }`}
+                            >
+                              {exName}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       {categories.map((cat) => (
                         <div key={cat}>
                           <button
