@@ -144,8 +144,16 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
   const selectExercise = (exerciseName: string) => {
     setName(exerciseName);
     setPickerOpen(false);
+    pushRecentExercise(exerciseName);
+    setRecent(getRecentExercises());
     const cached = getCachedPhoto(exerciseName);
-    if (cached) setPhoto(cached);
+    if (cached) {
+      setPhoto(cached);
+    } else {
+      setPhoto(undefined);
+      // Auto-download a photo in the background — user can still edit/replace it.
+      fetchPhotoFor(exerciseName, { silent: true });
+    }
     // Prefill sets from the most recent session of this exercise so you can
     // log mid-workout with minimal taps.
     const key = exerciseName.trim().toLowerCase();
