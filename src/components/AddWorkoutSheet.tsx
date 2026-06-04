@@ -18,6 +18,8 @@ import {
 import { type CustomExercise } from "@/lib/customExerciseStore";
 
 const PHOTO_CACHE_KEY = "exercise_photo_cache";
+const RECENT_EXERCISES_KEY = "recent_exercises";
+const RECENT_LIMIT = 8;
 
 function getCachedPhoto(exerciseName: string): string | undefined {
   try {
@@ -33,6 +35,22 @@ function setCachedPhoto(exerciseName: string, photoUrl: string) {
     const cache = JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY) || "{}");
     cache[exerciseName] = photoUrl;
     localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
+function getRecentExercises(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_EXERCISES_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function pushRecentExercise(name: string) {
+  try {
+    const current = getRecentExercises().filter((n) => n.toLowerCase() !== name.toLowerCase());
+    current.unshift(name);
+    localStorage.setItem(RECENT_EXERCISES_KEY, JSON.stringify(current.slice(0, RECENT_LIMIT)));
   } catch {}
 }
 
@@ -53,30 +71,32 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
   const fileRef = useRef<HTMLInputElement>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
   const [searchingPhoto, setSearchingPhoto] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
 
   const pr = useMemo(() => getPRForExercise(workouts, name), [workouts, name]);
 
-  const handleSearchPhoto = async () => {
-    if (!name.trim()) {
-      toast({ title: "Select an exercise first", variant: "destructive" });
+  const fetchPhotoFor = async (exerciseName: string, { silent = false }: { silent?: boolean } = {}) => {
+    const trimmed = exerciseName.trim();
+    if (!trimmed) {
+      if (!silent) toast({ title: "Select an exercise first", variant: "destructive" });
       return;
     }
     setSearchingPhoto(true);
     try {
       const { data, error } = await supabase.functions.invoke("search-exercise-image", {
-        body: { exerciseName: name.trim() },
+        body: { exerciseName: trimmed },
       });
       if (error) throw error;
       if (data?.imageUrl) {
         setPhoto(data.imageUrl);
-        setCachedPhoto(name.trim(), data.imageUrl);
-        toast({ title: "Photo found! 📸" });
-      } else {
+        setCachedPhoto(trimmed, data.imageUrl);
+        if (!silent) toast({ title: "Photo found! 📸" });
+      } else if (!silent) {
         toast({ title: "No photo found", variant: "destructive" });
       }
     } catch (err) {
       console.error(err);
-      toast({ title: "Failed to find photo", variant: "destructive" });
+      if (!silent) toast({ title: "Failed to find photo", variant: "destructive" });
     } finally {
       setSearchingPhoto(false);
     }
@@ -85,6 +105,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
   useEffect(() => {
     if (open) {
       setCustomExercises(getLocalCustomExercises("workout"));
+      setRecent(getRecentExercises());
     }
   }, [user, open]);
 
@@ -123,8 +144,16 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
   const selectExercise = (exerciseName: string) => {
     setName(exerciseName);
     setPickerOpen(false);
+    pushRecentExercise(exerciseName);
+    setRecent(getRecentExercises());
     const cached = getCachedPhoto(exerciseName);
-    if (cached) setPhoto(cached);
+    if (cached) {
+      setPhoto(cached);
+    } else {
+      setPhoto(undefined);
+      // Auto-download a photo in the background — user can still edit/replace it.
+      fetchPhotoFor(exerciseName, { silent: true });
+    }
     // Prefill sets from the most recent session of this exercise so you can
     // log mid-workout with minimal taps.
     const key = exerciseName.trim().toLowerCase();
@@ -152,6 +181,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
       saveLocalCustomExercise(trimmed, "workout", "push");
     }
     if (photo) setCachedPhoto(trimmed, photo);
+    pushRecentExercise(trimmed);
     saveLocalWorkout({
       name: trimmed,
       sets,
@@ -211,30 +241,25 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="relative w-full h-40 rounded-lg border-2 border-dashed border-border bg-secondary/30 flex flex-col items-center justify-center gap-2">
+                  {searchingPhoto ? (
+                    <>
+                      <Loader2 className="w-7 h-7 text-primary animate-spin" />
+                      <span className="text-xs text-muted-foreground">Generating photo…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="w-7 h-7 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        {name ? "No photo yet" : "Select an exercise to auto-fetch a photo"}
+                      </span>
+                    </>
+                  )}
                   <button
                     onClick={() => fileRef.current?.click()}
-                    className="h-28 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors"
+                    className="absolute bottom-2 right-2 px-3 py-1.5 bg-background/80 backdrop-blur-sm rounded-full text-xs font-medium hover:bg-background flex items-center gap-1.5"
                   >
-                    <Camera className="w-6 h-6 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Take Photo</span>
-                  </button>
-                  <button
-                    onClick={handleSearchPhoto}
-                    disabled={searchingPhoto}
-                    className="h-28 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors disabled:opacity-50"
-                  >
-                    {searchingPhoto ? (
-                      <>
-                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                        <span className="text-xs text-muted-foreground">Generating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-6 h-6 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Find Photo</span>
-                      </>
-                    )}
+                    <Camera className="w-3.5 h-3.5" /> Edit Photo
                   </button>
                 </div>
               )}
@@ -260,7 +285,25 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
                     exit={{ opacity: 0, height: 0 }}
                     className="mt-2 rounded-lg bg-secondary border border-border overflow-hidden"
                   >
-                    <div className="max-h-60 overflow-y-auto">
+                    <div className="max-h-72 overflow-y-auto">
+                      {recent.length > 0 && (
+                        <div className="border-b border-border">
+                          <div className="px-4 py-2 font-display font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">
+                            Recent
+                          </div>
+                          {recent.map((exName) => (
+                            <button
+                              key={`recent-${exName}`}
+                              onClick={() => selectExercise(exName)}
+                              className={`w-full text-left px-6 py-2.5 text-sm hover:bg-muted/50 transition-colors ${
+                                name === exName ? "text-primary font-medium" : "text-foreground"
+                              }`}
+                            >
+                              {exName}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       {categories.map((cat) => (
                         <div key={cat}>
                           <button
