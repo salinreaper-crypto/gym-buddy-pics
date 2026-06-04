@@ -75,27 +75,28 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
 
   const pr = useMemo(() => getPRForExercise(workouts, name), [workouts, name]);
 
-  const handleSearchPhoto = async () => {
-    if (!name.trim()) {
-      toast({ title: "Select an exercise first", variant: "destructive" });
+  const fetchPhotoFor = async (exerciseName: string, { silent = false }: { silent?: boolean } = {}) => {
+    const trimmed = exerciseName.trim();
+    if (!trimmed) {
+      if (!silent) toast({ title: "Select an exercise first", variant: "destructive" });
       return;
     }
     setSearchingPhoto(true);
     try {
       const { data, error } = await supabase.functions.invoke("search-exercise-image", {
-        body: { exerciseName: name.trim() },
+        body: { exerciseName: trimmed },
       });
       if (error) throw error;
       if (data?.imageUrl) {
         setPhoto(data.imageUrl);
-        setCachedPhoto(name.trim(), data.imageUrl);
-        toast({ title: "Photo found! 📸" });
-      } else {
+        setCachedPhoto(trimmed, data.imageUrl);
+        if (!silent) toast({ title: "Photo found! 📸" });
+      } else if (!silent) {
         toast({ title: "No photo found", variant: "destructive" });
       }
     } catch (err) {
       console.error(err);
-      toast({ title: "Failed to find photo", variant: "destructive" });
+      if (!silent) toast({ title: "Failed to find photo", variant: "destructive" });
     } finally {
       setSearchingPhoto(false);
     }
