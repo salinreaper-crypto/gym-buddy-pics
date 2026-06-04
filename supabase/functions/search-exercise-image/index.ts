@@ -1,8 +1,12 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+const MAX_NAME_LEN = 100;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -10,24 +14,62 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { exerciseName } = await req.json();
+    // --- Auth ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
+    // --- Input validation ---
+    const { exerciseName } = await req.json();
     if (!exerciseName || typeof exerciseName !== "string") {
       return new Response(
         JSON.stringify({ error: "exerciseName is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+    const cleanedName = exerciseName
+      .replace(/[\u0000-\u001F\u007F]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (cleanedName.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "exerciseName is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    if (cleanedName.length > MAX_NAME_LEN) {
+      return new Response(
+        JSON.stringify({ error: "Input too long" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
+      console.error("LOVABLE_API_KEY not configured");
       return new Response(
-        JSON.stringify({ error: "API key not configured" }),
+        JSON.stringify({ error: "AI service temporarily unavailable" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const prompt = `Generate a clear, realistic photograph of a person using the "${exerciseName}" gym exercise or machine. Show proper form. Clean gym background. Well-lit, professional fitness photography style.`;
+    const prompt = `Generate a clear, realistic photograph of a person using the "${cleanedName}" gym exercise or machine. Show proper form. Clean gym background. Well-lit, professional fitness photography style.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -58,8 +100,8 @@ Deno.serve(async (req) => {
         );
       }
       return new Response(
-        JSON.stringify({ error: "Failed to generate image" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({ error: "AI service temporarily unavailable" }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -67,7 +109,6 @@ Deno.serve(async (req) => {
     const msg = data.choices?.[0]?.message;
     let imageBase64: string | null = null;
 
-    // Lovable AI returns images in message.images[] for image modality
     if (Array.isArray(msg?.images) && msg.images[0]?.image_url?.url) {
       imageBase64 = msg.images[0].image_url.url;
     } else if (Array.isArray(msg?.content)) {
@@ -96,9 +137,9 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
-    console.error("Error:", error);
+    console.error("search-exercise-image error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
