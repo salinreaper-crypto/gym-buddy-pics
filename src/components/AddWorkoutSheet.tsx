@@ -240,30 +240,25 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="relative w-full h-40 rounded-lg border-2 border-dashed border-border bg-secondary/30 flex flex-col items-center justify-center gap-2">
+                  {searchingPhoto ? (
+                    <>
+                      <Loader2 className="w-7 h-7 text-primary animate-spin" />
+                      <span className="text-xs text-muted-foreground">Generating photo…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="w-7 h-7 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        {name ? "No photo yet" : "Select an exercise to auto-fetch a photo"}
+                      </span>
+                    </>
+                  )}
                   <button
                     onClick={() => fileRef.current?.click()}
-                    className="h-28 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors"
+                    className="absolute bottom-2 right-2 px-3 py-1.5 bg-background/80 backdrop-blur-sm rounded-full text-xs font-medium hover:bg-background flex items-center gap-1.5"
                   >
-                    <Camera className="w-6 h-6 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Take Photo</span>
-                  </button>
-                  <button
-                    onClick={handleSearchPhoto}
-                    disabled={searchingPhoto}
-                    className="h-28 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors disabled:opacity-50"
-                  >
-                    {searchingPhoto ? (
-                      <>
-                        <Loader2 className="w-6 h-6 text-primary animate-spin" />
-                        <span className="text-xs text-muted-foreground">Generating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-6 h-6 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Find Photo</span>
-                      </>
-                    )}
+                    <Camera className="w-3.5 h-3.5" /> Edit Photo
                   </button>
                 </div>
               )}
