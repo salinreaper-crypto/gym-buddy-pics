@@ -18,6 +18,8 @@ import {
 import { type CustomExercise } from "@/lib/customExerciseStore";
 
 const PHOTO_CACHE_KEY = "exercise_photo_cache";
+const RECENT_EXERCISES_KEY = "recent_exercises";
+const RECENT_LIMIT = 8;
 
 function getCachedPhoto(exerciseName: string): string | undefined {
   try {
@@ -33,6 +35,22 @@ function setCachedPhoto(exerciseName: string, photoUrl: string) {
     const cache = JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY) || "{}");
     cache[exerciseName] = photoUrl;
     localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify(cache));
+  } catch {}
+}
+
+function getRecentExercises(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_EXERCISES_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function pushRecentExercise(name: string) {
+  try {
+    const current = getRecentExercises().filter((n) => n.toLowerCase() !== name.toLowerCase());
+    current.unshift(name);
+    localStorage.setItem(RECENT_EXERCISES_KEY, JSON.stringify(current.slice(0, RECENT_LIMIT)));
   } catch {}
 }
 
