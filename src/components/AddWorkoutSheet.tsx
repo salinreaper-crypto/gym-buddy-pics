@@ -71,6 +71,7 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
   const fileRef = useRef<HTMLInputElement>(null);
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
   const [searchingPhoto, setSearchingPhoto] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
 
   const pr = useMemo(() => getPRForExercise(workouts, name), [workouts, name]);
 
