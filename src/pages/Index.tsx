@@ -318,6 +318,10 @@ export default function Index() {
 
       {tab === "nutrition" && <NutritionTab />}
 
+      {tab === "plans" && (
+        <PlansTab onStartPlan={(plan, dayOfWeek) => setGuided({ plan, dayOfWeek })} />
+      )}
+
       {tab === "weekly" && (
         <>
           <MuscleAnalysis workouts={workouts} />
@@ -342,6 +346,48 @@ export default function Index() {
         <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshLocal} onUpdated={refreshLocal} />
       )}
       <PrProgressDialog exerciseName={prDetail} workouts={workouts} onClose={() => setPrDetail(null)} />
+
+      <StartWorkoutChooser
+        open={chooserOpen}
+        plans={plans}
+        onClose={() => setChooserOpen(false)}
+        onPickPlan={(plan, dayOfWeek) => { setChooserOpen(false); setGuided({ plan, dayOfWeek }); }}
+        onStartBlank={() => { setChooserOpen(false); setSheetOpen(true); }}
+        onGoToPlans={() => { setChooserOpen(false); setTab("plans"); refreshPlans(); }}
+      />
+
+      {guided && (
+        <GuidedSessionSheet
+          plan={guided.plan}
+          dayOfWeek={guided.dayOfWeek}
+          recentWorkouts={workouts}
+          onClose={() => setGuided(null)}
+          onSaved={refreshLocal}
+        />
+      )}
     </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 min-w-[60px] flex items-center justify-center gap-1.5 py-2.5 rounded-md text-xs sm:text-sm font-display font-semibold transition-colors whitespace-nowrap ${
+        active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+      }`}
+    >
+      {icon} <span>{label}</span>
+    </button>
   );
 }
