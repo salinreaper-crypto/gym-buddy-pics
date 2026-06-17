@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Plus, Minus, Check, SkipForward, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
