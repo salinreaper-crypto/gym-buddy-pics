@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
-import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud, Utensils } from "lucide-react";
+import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud, Utensils, Calendar, Play } from "lucide-react";
 import NutritionTab from "@/components/NutritionTab";
 import { type Workout } from "@/lib/workoutStore";
 import { type CardioEntry } from "@/lib/cardioStore";
@@ -23,12 +23,16 @@ import CardioCard from "@/components/CardioCard";
 import WeeklySummary from "@/components/WeeklySummary";
 import MuscleAnalysis from "@/components/MuscleAnalysis";
 import PrProgressDialog from "@/components/PrProgressDialog";
+import PlansTab from "@/components/PlansTab";
+import StartWorkoutChooser from "@/components/StartWorkoutChooser";
+import GuidedSessionSheet from "@/components/GuidedSessionSheet";
+import { getPlans, type WorkoutPlan } from "@/lib/plansStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
 import { getPersonalRecords } from "@/lib/personalRecords";
 
-type Tab = "weights" | "cardio" | "nutrition" | "weekly";
+type Tab = "weights" | "cardio" | "nutrition" | "plans" | "weekly";
 
 export default function Index() {
   const { user, signOut, loading } = useAuth();
