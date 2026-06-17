@@ -22,8 +22,49 @@ function getLocal<T>(key: string): T[] {
   }
 }
 
+function isQuotaError(e: unknown): boolean {
+  return (
+    e instanceof DOMException &&
+    (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED" || (e as any).code === 22)
+  );
+}
+
+// Strip large inline base64 photos so the rest of the data fits in
+// localStorage. Photos still live in the cloud and can be re-fetched.
+function stripPhotos<T>(data: T[]): T[] {
+  return data.map((item: any) => {
+    if (item && typeof item === "object" && typeof item.photo === "string" && item.photo.startsWith("data:")) {
+      return { ...item, photo: undefined };
+    }
+    return item;
+  });
+}
+
 function setLocal<T>(key: string, data: T[]) {
-  localStorage.setItem(key, JSON.stringify(data));
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    return;
+  } catch (e) {
+    if (!isQuotaError(e)) throw e;
+  }
+  // Quota hit — progressively shed inline photos until it fits.
+  try {
+    localStorage.setItem(key, JSON.stringify(stripPhotos(data)));
+    return;
+  } catch (e2) {
+    if (!isQuotaError(e2)) throw e2;
+  }
+  try {
+    const w = getLocal<any>(KEYS.workouts);
+    localStorage.setItem(KEYS.workouts, JSON.stringify(stripPhotos(w)));
+    const c = getLocal<any>(KEYS.cardio);
+    localStorage.setItem(KEYS.cardio, JSON.stringify(stripPhotos(c)));
+    localStorage.setItem(key, JSON.stringify(stripPhotos(data)));
+  } catch (e3) {
+    if (!isQuotaError(e3)) throw e3;
+    console.warn("localStorage quota exceeded — dropping photos to persist data");
+    localStorage.setItem(key, JSON.stringify(stripPhotos(data)));
+  }
 }
 
 // Track what needs syncing
