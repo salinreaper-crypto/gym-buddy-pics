@@ -56,7 +56,8 @@ export default function GuidedSessionSheet({ plan, dayOfWeek, recentWorkouts, on
   const [saving, setSaving] = useState(false);
 
   // Rest countdown
-  useState(() => {
+  useEffect(() => {
+    if (rest == null) return;
     const id = setInterval(() => {
       setRest((r) => {
         if (r == null) return r;
@@ -68,7 +69,7 @@ export default function GuidedSessionSheet({ plan, dayOfWeek, recentWorkouts, on
       });
     }, 1000);
     return () => clearInterval(id);
-  });
+  }, [rest != null]);
 
   const toggleSet = (i: number, j: number) => {
     setSession((prev) =>
