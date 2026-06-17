@@ -71,7 +71,8 @@ export default function Index() {
   useEffect(() => {
     if (loading) return;
     pullFromCloud().then(refreshLocal).catch(() => {});
-  }, [loading, refreshLocal]);
+    refreshPlans();
+  }, [loading, refreshLocal, refreshPlans]);
   const todayKey = new Date().toLocaleDateString("en-US", {
     weekday: "short", month: "short", day: "numeric", year: "numeric",
   });
