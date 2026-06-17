@@ -172,26 +172,38 @@ export default function AddWorkoutSheet({ open, onClose, onSaved, workouts = [] 
       toast({ title: "Enter a workout name", variant: "destructive" });
       return;
     }
-    if (!user) return;
-    const trimmed = name.trim();
-    const isPreset = EXERCISES.some((e) => e.name === trimmed);
-    if (!isPreset && expandedCategory && expandedCategory !== ("custom" as any)) {
-      saveLocalCustomExercise(trimmed, "workout", expandedCategory);
-    } else if (!isPreset) {
-      saveLocalCustomExercise(trimmed, "workout", "push");
+    if (!user) {
+      toast({ title: "You must be signed in to save", variant: "destructive" });
+      return;
     }
-    if (photo) setCachedPhoto(trimmed, photo);
-    pushRecentExercise(trimmed);
-    saveLocalWorkout({
-      name: trimmed,
-      sets,
-      photo,
-      date: new Date().toISOString(),
-    });
-    reset();
-    onSaved();
-    onClose();
-    toast({ title: "Workout logged! 💪" });
+    const trimmed = name.trim();
+    try {
+      const isPreset = EXERCISES.some((e) => e.name === trimmed);
+      if (!isPreset && expandedCategory && expandedCategory !== ("custom" as any)) {
+        saveLocalCustomExercise(trimmed, "workout", expandedCategory);
+      } else if (!isPreset) {
+        saveLocalCustomExercise(trimmed, "workout", "push");
+      }
+      if (photo) setCachedPhoto(trimmed, photo);
+      pushRecentExercise(trimmed);
+      saveLocalWorkout({
+        name: trimmed,
+        sets,
+        photo,
+        date: new Date().toISOString(),
+      });
+      reset();
+      onSaved();
+      onClose();
+      toast({ title: "Workout logged! 💪" });
+    } catch (err: any) {
+      console.error("Failed to save workout", err);
+      toast({
+        title: "Couldn't save workout",
+        description: err?.message || "Storage may be full. Try removing the photo and saving again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const categories: ExerciseCategory[] = ["push", "pull", "legs", "core"];
