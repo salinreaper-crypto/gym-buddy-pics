@@ -164,6 +164,92 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_plan_items: {
+        Row: {
+          created_at: string
+          day_of_week: number | null
+          exercise_name: string
+          id: string
+          kind: string
+          plan_id: string
+          position: number
+          target_distance_km: number | null
+          target_duration_min: number | null
+          target_reps: number | null
+          target_sets: number | null
+          target_weight: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week?: number | null
+          exercise_name: string
+          id?: string
+          kind: string
+          plan_id: string
+          position?: number
+          target_distance_km?: number | null
+          target_duration_min?: number | null
+          target_reps?: number | null
+          target_sets?: number | null
+          target_weight?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number | null
+          exercise_name?: string
+          id?: string
+          kind?: string
+          plan_id?: string
+          position?: number
+          target_distance_km?: number | null
+          target_duration_min?: number | null
+          target_reps?: number | null
+          target_sets?: number | null
+          target_weight?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "workout_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_plans: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       workouts: {
         Row: {
           created_at: string

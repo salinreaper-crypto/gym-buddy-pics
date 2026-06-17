@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
-import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud, Utensils } from "lucide-react";
+import { Plus, Dumbbell, Trophy, HeartPulse, LogOut, RefreshCw, Cloud, Utensils, Calendar, Play } from "lucide-react";
 import NutritionTab from "@/components/NutritionTab";
 import { type Workout } from "@/lib/workoutStore";
 import { type CardioEntry } from "@/lib/cardioStore";
@@ -23,12 +23,16 @@ import CardioCard from "@/components/CardioCard";
 import WeeklySummary from "@/components/WeeklySummary";
 import MuscleAnalysis from "@/components/MuscleAnalysis";
 import PrProgressDialog from "@/components/PrProgressDialog";
+import PlansTab from "@/components/PlansTab";
+import StartWorkoutChooser from "@/components/StartWorkoutChooser";
+import GuidedSessionSheet from "@/components/GuidedSessionSheet";
+import { getPlans, type WorkoutPlan } from "@/lib/plansStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
 import { getPersonalRecords } from "@/lib/personalRecords";
 
-type Tab = "weights" | "cardio" | "nutrition" | "weekly";
+type Tab = "weights" | "cardio" | "nutrition" | "plans" | "weekly";
 
 export default function Index() {
   const { user, signOut, loading } = useAuth();
@@ -43,11 +47,20 @@ export default function Index() {
   const [pendingCount, setPendingCount] = useState(0);
   const [prDetail, setPrDetail] = useState<string | null>(null);
   const [prsCollapsed, setPrsCollapsed] = useState(false);
+  const [plans, setPlans] = useState<WorkoutPlan[]>([]);
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [guided, setGuided] = useState<{ plan: WorkoutPlan; dayOfWeek: number } | null>(null);
 
   const refreshLocal = useCallback(() => {
     setWorkouts(getLocalWorkouts());
     setCardioEntries(getLocalCardio());
     setPendingCount(getPendingCount());
+  }, []);
+
+  const refreshPlans = useCallback(async () => {
+    try {
+      setPlans(await getPlans());
+    } catch {}
   }, []);
 
   // Load local data immediately, then sync from cloud in background
@@ -58,7 +71,8 @@ export default function Index() {
   useEffect(() => {
     if (loading) return;
     pullFromCloud().then(refreshLocal).catch(() => {});
-  }, [loading, refreshLocal]);
+    refreshPlans();
+  }, [loading, refreshLocal, refreshPlans]);
   const todayKey = new Date().toLocaleDateString("en-US", {
     weekday: "short", month: "short", day: "numeric", year: "numeric",
   });
@@ -143,41 +157,26 @@ export default function Index() {
 
       {/* Tabs */}
       <div className="px-4 pb-4">
-        <div className="flex bg-secondary rounded-lg p-1">
-          <button
-            onClick={() => setTab("weights")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
-              tab === "weights" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            <Dumbbell className="w-4 h-4" /> Weights
-          </button>
-          <button
-            onClick={() => setTab("cardio")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
-              tab === "cardio" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            <HeartPulse className="w-4 h-4" /> Cardio
-          </button>
-          <button
-            onClick={() => setTab("nutrition")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
-              tab === "nutrition" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            <Utensils className="w-4 h-4" /> Food
-          </button>
-          <button
-            onClick={() => setTab("weekly")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
-              tab === "weekly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            <Trophy className="w-4 h-4" /> Weekly
-          </button>
+        <div className="flex bg-secondary rounded-lg p-1 gap-0.5 overflow-x-auto">
+          <TabButton active={tab === "weights"} onClick={() => setTab("weights")} icon={<Dumbbell className="w-4 h-4" />} label="Weights" />
+          <TabButton active={tab === "cardio"} onClick={() => setTab("cardio")} icon={<HeartPulse className="w-4 h-4" />} label="Cardio" />
+          <TabButton active={tab === "nutrition"} onClick={() => setTab("nutrition")} icon={<Utensils className="w-4 h-4" />} label="Food" />
+          <TabButton active={tab === "plans"} onClick={() => setTab("plans")} icon={<Calendar className="w-4 h-4" />} label="Plans" />
+          <TabButton active={tab === "weekly"} onClick={() => setTab("weekly")} icon={<Trophy className="w-4 h-4" />} label="Weekly" />
         </div>
       </div>
+
+      {/* Start Workout CTA — visible on weights/plans tabs */}
+      {(tab === "weights" || tab === "plans") && (
+        <div className="px-4 pb-4">
+          <button
+            onClick={() => setChooserOpen(true)}
+            className="w-full h-14 rounded-xl bg-primary text-primary-foreground font-display font-bold text-base flex items-center justify-center gap-2 glow-primary active:scale-[0.99] transition-transform"
+          >
+            <Play className="w-5 h-5" /> Start Workout
+          </button>
+        </div>
+      )}
 
       {tab === "weights" && (
         <>
@@ -319,6 +318,10 @@ export default function Index() {
 
       {tab === "nutrition" && <NutritionTab />}
 
+      {tab === "plans" && (
+        <PlansTab onStartPlan={(plan, dayOfWeek) => setGuided({ plan, dayOfWeek })} />
+      )}
+
       {tab === "weekly" && (
         <>
           <MuscleAnalysis workouts={workouts} />
@@ -343,6 +346,48 @@ export default function Index() {
         <WorkoutDetail workout={selected} onBack={() => setSelected(null)} onDeleted={refreshLocal} onUpdated={refreshLocal} />
       )}
       <PrProgressDialog exerciseName={prDetail} workouts={workouts} onClose={() => setPrDetail(null)} />
+
+      <StartWorkoutChooser
+        open={chooserOpen}
+        plans={plans}
+        onClose={() => setChooserOpen(false)}
+        onPickPlan={(plan, dayOfWeek) => { setChooserOpen(false); setGuided({ plan, dayOfWeek }); }}
+        onStartBlank={() => { setChooserOpen(false); setSheetOpen(true); }}
+        onGoToPlans={() => { setChooserOpen(false); setTab("plans"); refreshPlans(); }}
+      />
+
+      {guided && (
+        <GuidedSessionSheet
+          plan={guided.plan}
+          dayOfWeek={guided.dayOfWeek}
+          recentWorkouts={workouts}
+          onClose={() => setGuided(null)}
+          onSaved={refreshLocal}
+        />
+      )}
     </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 min-w-[60px] flex items-center justify-center gap-1.5 py-2.5 rounded-md text-xs sm:text-sm font-display font-semibold transition-colors whitespace-nowrap ${
+        active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+      }`}
+    >
+      {icon} <span>{label}</span>
+    </button>
   );
 }
