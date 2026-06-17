@@ -47,11 +47,20 @@ export default function Index() {
   const [pendingCount, setPendingCount] = useState(0);
   const [prDetail, setPrDetail] = useState<string | null>(null);
   const [prsCollapsed, setPrsCollapsed] = useState(false);
+  const [plans, setPlans] = useState<WorkoutPlan[]>([]);
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [guided, setGuided] = useState<{ plan: WorkoutPlan; dayOfWeek: number } | null>(null);
 
   const refreshLocal = useCallback(() => {
     setWorkouts(getLocalWorkouts());
     setCardioEntries(getLocalCardio());
     setPendingCount(getPendingCount());
+  }, []);
+
+  const refreshPlans = useCallback(async () => {
+    try {
+      setPlans(await getPlans());
+    } catch {}
   }, []);
 
   // Load local data immediately, then sync from cloud in background
