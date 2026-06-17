@@ -157,41 +157,26 @@ export default function Index() {
 
       {/* Tabs */}
       <div className="px-4 pb-4">
-        <div className="flex bg-secondary rounded-lg p-1">
-          <button
-            onClick={() => setTab("weights")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
-              tab === "weights" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            <Dumbbell className="w-4 h-4" /> Weights
-          </button>
-          <button
-            onClick={() => setTab("cardio")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
-              tab === "cardio" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            <HeartPulse className="w-4 h-4" /> Cardio
-          </button>
-          <button
-            onClick={() => setTab("nutrition")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
-              tab === "nutrition" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            <Utensils className="w-4 h-4" /> Food
-          </button>
-          <button
-            onClick={() => setTab("weekly")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-display font-semibold transition-colors ${
-              tab === "weekly" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-            }`}
-          >
-            <Trophy className="w-4 h-4" /> Weekly
-          </button>
+        <div className="flex bg-secondary rounded-lg p-1 gap-0.5 overflow-x-auto">
+          <TabButton active={tab === "weights"} onClick={() => setTab("weights")} icon={<Dumbbell className="w-4 h-4" />} label="Weights" />
+          <TabButton active={tab === "cardio"} onClick={() => setTab("cardio")} icon={<HeartPulse className="w-4 h-4" />} label="Cardio" />
+          <TabButton active={tab === "nutrition"} onClick={() => setTab("nutrition")} icon={<Utensils className="w-4 h-4" />} label="Food" />
+          <TabButton active={tab === "plans"} onClick={() => setTab("plans")} icon={<Calendar className="w-4 h-4" />} label="Plans" />
+          <TabButton active={tab === "weekly"} onClick={() => setTab("weekly")} icon={<Trophy className="w-4 h-4" />} label="Weekly" />
         </div>
       </div>
+
+      {/* Start Workout CTA — visible on weights/plans tabs */}
+      {(tab === "weights" || tab === "plans") && (
+        <div className="px-4 pb-4">
+          <button
+            onClick={() => setChooserOpen(true)}
+            className="w-full h-14 rounded-xl bg-primary text-primary-foreground font-display font-bold text-base flex items-center justify-center gap-2 glow-primary active:scale-[0.99] transition-transform"
+          >
+            <Play className="w-5 h-5" /> Start Workout
+          </button>
+        </div>
+      )}
 
       {tab === "weights" && (
         <>
