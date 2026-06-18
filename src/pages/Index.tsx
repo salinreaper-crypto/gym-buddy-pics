@@ -26,6 +26,7 @@ import PrProgressDialog from "@/components/PrProgressDialog";
 import PlansTab from "@/components/PlansTab";
 import StartWorkoutChooser from "@/components/StartWorkoutChooser";
 import GuidedSessionSheet from "@/components/GuidedSessionSheet";
+import ImportFitButton from "@/components/ImportFitButton";
 import { getPlans, type WorkoutPlan } from "@/lib/plansStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -168,13 +169,20 @@ export default function Index() {
 
       {/* Start Workout CTA — visible on weights/plans tabs */}
       {(tab === "weights" || tab === "plans") && (
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 space-y-2">
           <button
             onClick={() => setChooserOpen(true)}
             className="w-full h-14 rounded-xl bg-primary text-primary-foreground font-display font-bold text-base flex items-center justify-center gap-2 glow-primary active:scale-[0.99] transition-transform"
           >
             <Play className="w-5 h-5" /> Start Workout
           </button>
+          <ImportFitButton onImported={refreshLocal} className="w-full" />
+        </div>
+      )}
+
+      {tab === "cardio" && (
+        <div className="px-4 pb-4">
+          <ImportFitButton onImported={refreshLocal} className="w-full" />
         </div>
       )}
 
