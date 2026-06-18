@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Calendar, Trash2, Pencil, Play, Repeat } from "lucide-react";
+import { Plus, Calendar, Trash2, Pencil, Play, Repeat, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -197,6 +197,27 @@ export default function PlansTab({ onStartPlan }: Props) {
                 <p className="text-xs text-muted-foreground mb-3">
                   {plan.items.length} exercise{plan.items.length === 1 ? "" : "s"}
                 </p>
+              )}
+
+              {todaysItems.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {todaysItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-2 text-sm bg-secondary/40 rounded-md px-3 py-2"
+                    >
+                      <Dumbbell className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="font-medium truncate">{item.exercise_name}</span>
+                      <span className="text-muted-foreground text-xs ml-auto shrink-0">
+                        {item.kind === "strength"
+                          ? `${item.target_sets ?? "—"}×${item.target_reps ?? "—"}` +
+                            (item.target_weight ? ` @ ${item.target_weight}kg` : "")
+                          : `${item.target_duration_min ?? "—"}min` +
+                            (item.target_distance_km ? ` / ${item.target_distance_km}km` : "")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
 
               <Button
