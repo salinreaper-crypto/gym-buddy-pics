@@ -263,7 +263,7 @@ export default function Index() {
                   {expandedDates.has(dateKey) && (
                     <div className="space-y-2 pb-2">
                       {dateWorkouts.map((w, i) => (
-                        <WorkoutCard key={w.id} workout={w} index={i} onClick={() => setSelected(w)} />
+                        <WorkoutCard key={w.id} workout={w} index={i} onClick={() => setSelected(w)} onDeleted={refreshLocal} />
                       ))}
                     </div>
                   )}
