@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Calendar, Trash2, Pencil, Play, Repeat } from "lucide-react";
+import { Plus, Calendar, Trash2, Pencil, Play, Repeat, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
