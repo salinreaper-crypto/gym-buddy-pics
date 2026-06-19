@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Timer, MapPin, Flame, Pencil } from "lucide-react";
+import { Timer, MapPin, Flame, Pencil, Trash2 } from "lucide-react";
 import type { CardioEntry } from "@/lib/cardioStore";
 
 interface CardioCardProps {
