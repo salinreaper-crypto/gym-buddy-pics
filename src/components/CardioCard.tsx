@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Timer, MapPin, Flame, Pencil } from "lucide-react";
+import { Timer, MapPin, Flame, Pencil, Trash2 } from "lucide-react";
 import type { CardioEntry } from "@/lib/cardioStore";
 
 interface CardioCardProps {
@@ -19,14 +19,26 @@ export default function CardioCard({ entry, index, onDelete, onEdit }: CardioCar
     >
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-display font-semibold text-foreground">{entry.name}</h3>
-        {onEdit && (
+        <div className="flex items-center gap-1">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(entry)}
+              className="p-1.5 rounded-full hover:bg-secondary"
+            >
+              <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          )}
           <button
-            onClick={() => onEdit(entry)}
-            className="p-1.5 rounded-full hover:bg-secondary"
+            onClick={() => {
+              if (!confirm(`Delete "${entry.name}"?`)) return;
+              onDelete(entry.id);
+            }}
+            aria-label="Delete cardio session"
+            className="p-1.5 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
           >
-            <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
-        )}
+        </div>
       </div>
       <div className="flex gap-4 text-sm text-muted-foreground">
         <span className="flex items-center gap-1">
