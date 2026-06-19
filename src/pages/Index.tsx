@@ -47,7 +47,7 @@ export default function Index() {
   const [syncing, setSyncing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [prDetail, setPrDetail] = useState<string | null>(null);
-  const [prsCollapsed, setPrsCollapsed] = useState(false);
+  const [prsCollapsed, setPrsCollapsed] = useState(true);
   const [plans, setPlans] = useState<WorkoutPlan[]>([]);
   const [chooserOpen, setChooserOpen] = useState(false);
   const [guided, setGuided] = useState<{ plan: WorkoutPlan; dayOfWeek: number } | null>(null);
