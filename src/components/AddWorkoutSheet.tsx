@@ -34,7 +34,17 @@ function setCachedPhoto(exerciseName: string, photoUrl: string) {
   try {
     const cache = JSON.parse(localStorage.getItem(PHOTO_CACHE_KEY) || "{}");
     cache[exerciseName] = photoUrl;
-    localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify(cache));
+    try {
+      localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify(cache));
+    } catch {
+      // Quota hit — keep only this entry to free space.
+      try {
+        localStorage.setItem(PHOTO_CACHE_KEY, JSON.stringify({ [exerciseName]: photoUrl }));
+      } catch {
+        // Give up silently — photo cache is best-effort.
+        localStorage.removeItem(PHOTO_CACHE_KEY);
+      }
+    }
   } catch {}
 }
 
