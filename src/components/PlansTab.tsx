@@ -140,7 +140,8 @@ export default function PlansTab({ onStartPlan }: Props) {
         </div>
       ) : (
         plans.map((plan, i) => {
-          const todaysItems = itemsForDay(plan, today);
+          const activeDay = selectedDay[plan.id] ?? today;
+          const dayItems = itemsForDay(plan, activeDay);
           return (
             <motion.div
               key={plan.id}
@@ -178,19 +179,24 @@ export default function PlansTab({ onStartPlan }: Props) {
                 <div className="flex gap-1 mb-3">
                   {DAY_LABELS.map((label, idx) => {
                     const has = plan.items.some((it) => it.day_of_week === idx);
+                    const isActive = idx === activeDay;
                     return (
-                      <div
+                      <button
                         key={idx}
-                        className={`flex-1 text-center py-1 rounded-md text-[10px] font-display font-bold tracking-wider uppercase ${
-                          idx === today && has
-                            ? "bg-primary text-primary-foreground"
+                        onClick={() => setSelectedDay((s) => ({ ...s, [plan.id]: idx }))}
+                        className={`flex-1 text-center py-1.5 rounded-md text-[10px] font-display font-bold tracking-wider uppercase transition-colors ${
+                          isActive
+                            ? "bg-primary text-primary-foreground ring-2 ring-primary/40"
                             : has
-                            ? "bg-secondary text-foreground"
-                            : "bg-secondary/40 text-muted-foreground"
+                            ? "bg-secondary text-foreground hover:bg-secondary/80"
+                            : "bg-secondary/40 text-muted-foreground hover:bg-secondary/60"
                         }`}
                       >
                         {label}
-                      </div>
+                        {idx === today && (
+                          <span className="block text-[8px] opacity-70 leading-none mt-0.5">today</span>
+                        )}
+                      </button>
                     );
                   })}
                 </div>
@@ -200,9 +206,9 @@ export default function PlansTab({ onStartPlan }: Props) {
                 </p>
               )}
 
-              {todaysItems.length > 0 && (
+              {dayItems.length > 0 && (
                 <div className="space-y-2 mb-3">
-                  {todaysItems.map((item) => (
+                  {dayItems.map((item) => (
                     <div
                       key={item.id}
                       className="flex items-center gap-2 text-sm bg-secondary/40 rounded-md px-3 py-2"
@@ -222,18 +228,18 @@ export default function PlansTab({ onStartPlan }: Props) {
               )}
 
               <Button
-                onClick={() => onStartPlan(plan, today)}
-                disabled={todaysItems.length === 0}
+                onClick={() => onStartPlan(plan, activeDay)}
+                disabled={dayItems.length === 0}
                 className="w-full h-10 font-display font-semibold"
-                variant={todaysItems.length > 0 ? "default" : "outline"}
+                variant={dayItems.length > 0 ? "default" : "outline"}
               >
                 <Play className="w-4 h-4 mr-2" />
                 {plan.kind === "weekly"
-                  ? todaysItems.length > 0
-                    ? `Start ${DAY_LABELS_FULL[today]} (${todaysItems.length})`
-                    : `No exercises for ${DAY_LABELS_FULL[today]}`
-                  : todaysItems.length > 0
-                  ? `Start (${todaysItems.length})`
+                  ? dayItems.length > 0
+                    ? `Start ${DAY_LABELS_FULL[activeDay]} (${dayItems.length})`
+                    : `No exercises for ${DAY_LABELS_FULL[activeDay]}`
+                  : dayItems.length > 0
+                  ? `Start (${dayItems.length})`
                   : "Add exercises first"}
               </Button>
             </motion.div>
