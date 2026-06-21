@@ -30,6 +30,7 @@ export default function PlansTab({ onStartPlan }: Props) {
   const [newKind, setNewKind] = useState<PlanKind>("weekly");
   const [editing, setEditing] = useState<WorkoutPlan | null>(null);
   const today = new Date().getDay();
+  const [selectedDay, setSelectedDay] = useState<Record<string, number>>({});
 
   const refresh = async () => {
     try {
